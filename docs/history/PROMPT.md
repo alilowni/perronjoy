@@ -1,9 +1,10 @@
-> **Status (November 2026):** this file is the original planning prompt and is kept for history.
-> The product goal has moved on: Perronjoy now focuses on **transfers**. It shows the train you
-> arrive with, the platform you must reach, and the walking route between them, for four
-> stations. The current rules live in `SPEC.md`, the overview in `README.md`, and the build
-> prompts per station in `prompts/`. Where this file and `SPEC.md` differ, `SPEC.md` wins.
-> The visual direction described below (soft, bright, miniature, like the reference video) still applies.
+> **Status:** this is the original planning prompt, kept for history. It is not
+> a current instruction. The product now focuses on **transfers**: the train you
+> arrive with, the platform you must reach, and the walking route between them.
+> Current rules: [docs/SPEC.md](../SPEC.md). Overview: [README](../../README.md).
+> Build prompts: [docs/prompts/](../prompts/README.md). The reference video now
+> lives in [docs/reference/](../reference/). The visual direction below (soft,
+> bright, miniature) still applies.
 
 # Prompt — watch the reference, then write the plan
 
