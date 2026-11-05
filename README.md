@@ -103,7 +103,6 @@ tools/
 docs/
   SPEC.md                    the station contract
   prompts/                   one build prompt per station
-  reference/                 the private visual reference video (not published)
   history/PROMPT.md          the original planning prompt
 AGENTS.md, CLAUDE.md         instructions for coding agents
 .github/workflows/pages.yml  checks every pull request, publishes main
@@ -114,7 +113,7 @@ AGENTS.md, CLAUDE.md         instructions for coding agents
 The workflow checks every pull request and publishes `site/` on every push to
 `main`. One-time setup: Settings → Pages → Build and deployment → Source:
 **GitHub Actions**. The site then appears at `https://<user>.github.io/perronjoy/`.
-Only `site/` is published; the reference video and the docs are not.
+Only `site/` is published; the docs and tools are not.
 
 ## Merging the four station branches
 

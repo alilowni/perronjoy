@@ -30,7 +30,7 @@ site/                    the published website, served as is
   stations/_template/    a fictional station that follows every rule
   stations/<id>/         station.json, scene.svg, NOTES.md
 tools/                   Node scripts, no dependencies except optional Playwright
-docs/                    SPEC, build prompts, reference video, history
+docs/                    SPEC, build prompts, history
 ```
 
 ## Commands

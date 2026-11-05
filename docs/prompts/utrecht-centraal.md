@@ -42,9 +42,9 @@ trains. You do not write JavaScript or CSS.
    Open the PNG files in `tools/out/` and look at them. If Playwright is not
    available, run `npm run serve` and open
    `http://localhost:8000/station.html?station=_template` in a browser.
-4. Look at a few frames of `docs/reference/reference-kyoto-joy-scroll.mp4`.
-   It sets the mood: soft, bright, miniature, calm, with trees and buildings
-   around the tracks. Do not copy Kyoto.
+4. Read [SPEC 10](../SPEC.md#10-look-and-motion). It describes the
+   reference look in words: soft, bright, miniature, calm, with real trees
+   and buildings around the tracks. Do not copy its city (Kyoto).
 
 ## 3. Rules for all four stations
 

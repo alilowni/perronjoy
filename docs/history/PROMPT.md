@@ -2,9 +2,10 @@
 > a current instruction. The product now focuses on **transfers**: the train you
 > arrive with, the platform you must reach, and the walking route between them.
 > Current rules: [docs/SPEC.md](../SPEC.md). Overview: [README](../../README.md).
-> Build prompts: [docs/prompts/](../prompts/README.md). The reference video now
-> lives in [docs/reference/](../reference/). The visual direction below (soft,
-> bright, miniature) still applies.
+> Build prompts: [docs/prompts/](../prompts/README.md). The reference video it
+> mentions was removed from the repository; [SPEC section 10](../SPEC.md#10-look-and-motion)
+> describes it in words. The visual direction below (soft, bright, miniature)
+> still applies.
 
 # Prompt — watch the reference, then write the plan
 

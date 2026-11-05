@@ -189,8 +189,8 @@ switches language.
 
 ### 5.5 Surroundings: make it look real
 
-The reference video shows a station that feels like a real place: trees,
-buildings, a square. Perronjoy stations do the same, quietly.
+The reference (see section 10) showed a station that feels like a real place:
+trees, buildings, a covered entrance. Perronjoy stations do the same, quietly.
 
 - Draw **30–80 units** of surroundings around the platform area on every side
   that is not cut off by the fog.
@@ -363,11 +363,26 @@ verify a fact, keep the most likely value and mark it **VERIFY** in
 
 ## 10. Look and motion
 
-The target is the soft, bright, miniature feel of the reference video
-([`docs/reference/reference-kyoto-joy-scroll.mp4`](reference/), not
-published): pale surfaces, one green for the destination platform, soft
-shadows, lots of air. The shell gives you this when you use the classes. In
-the dark theme the same classes turn into a calm night palette.
+The target is the soft, bright, miniature feel of the original reference: a
+concept video of a station platform map on a phone, no longer kept in the
+repository. In words, it showed:
+
+- A top-down, slightly isometric view of four platforms, tracks vertical,
+  like a tidy model railway.
+- Pale grey and white surfaces, thin dark rails, soft shadows, lots of air.
+- One platform filled with a soft green that pulses gently: "your train".
+- Real surroundings at the edges: a row of trees on one side, low buildings
+  and stairs on the other, a covered station building across the tracks
+  with the station name on it, a small north arrow.
+- Tiny dark marks for people on the platforms. No faces, no detail.
+- White fog fading the top and bottom of the map.
+- Slow, smooth trains: one glides in and stops, one glides out. The camera
+  stays still.
+- A rounded white card under the map with the departures and a green
+  "your train" row.
+
+The shell gives you this when you use the classes. In the dark theme the same
+classes turn into a calm night palette.
 
 All motion is done by the shell. It uses one animation loop, moves only
 transforms, opacity and a dash offset, and runs at the display's frame rate.
