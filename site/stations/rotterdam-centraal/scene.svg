@@ -1,0 +1,256 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Perronjoy scene: Rotterdam Centraal. Contract: docs/SPEC.md section 5.
+  Rotated so that platform numbers run left to right: the top of the scene is the
+  west-south-west end (Schiedam, Delft, Den Haag), the bottom the east-north-east end
+  (Gouda and Utrecht, the HSL, the Willemsspoortunnel to Dordrecht and Breda). Left is the
+  city side (station hall, Stationsplein, Weena), right the Proveniersplein side.
+  1 unit = 1 metre along the tracks; across the tracks the station is widened about x2.6,
+  the surroundings are compressed. Sources and VERIFY items: NOTES.md.
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 600" data-perronjoy-scene="1">
+  <title>Rotterdam Centraal</title>
+  <g id="layer-ground">
+    <rect class="ground" x="0" y="0" width="600" height="600"/>
+    <!-- city side, beyond the Weena: blocks, and the Kruisplein with its rows of trees -->
+    <rect class="block" x="0" y="8" width="26" height="54" rx="2"/>
+    <rect class="block" x="0" y="68" width="26" height="58" rx="2"/>
+    <rect class="block" x="0" y="132" width="26" height="58" rx="2"/>
+    <rect class="block" x="0" y="332" width="26" height="60" rx="2"/>
+    <rect class="block" x="0" y="398" width="26" height="64" rx="2"/>
+    <rect class="block" x="0" y="468" width="26" height="62" rx="2"/>
+    <rect class="block" x="0" y="536" width="26" height="66" rx="2"/>
+    <rect class="square" x="0" y="196" width="28" height="130" rx="2"/>
+    <rect class="park" x="9" y="204" width="10" height="114" rx="3"/>
+    <circle class="tree" cx="4.5" cy="208" r="2.8"/>
+    <circle class="tree" cx="23.5" cy="208" r="2.8"/>
+    <circle class="tree" cx="4.5" cy="226" r="2.8"/>
+    <circle class="tree" cx="23.5" cy="226" r="2.8"/>
+    <circle class="tree" cx="4.5" cy="244" r="2.8"/>
+    <circle class="tree" cx="23.5" cy="244" r="2.8"/>
+    <circle class="tree" cx="4.5" cy="262" r="2.8"/>
+    <circle class="tree" cx="23.5" cy="262" r="2.8"/>
+    <circle class="tree" cx="4.5" cy="280" r="2.8"/>
+    <circle class="tree" cx="23.5" cy="280" r="2.8"/>
+    <circle class="tree" cx="4.5" cy="298" r="2.8"/>
+    <circle class="tree" cx="23.5" cy="298" r="2.8"/>
+    <circle class="tree" cx="4.5" cy="316" r="2.8"/>
+    <circle class="tree" cx="23.5" cy="316" r="2.8"/>
+    <!-- Weena -->
+    <rect class="road" x="30" y="-2" width="12" height="604"/>
+    <path class="road-line" d="M36 0 V600"/>
+    <!-- Groothandelsgebouw (220 m long), Stationsplein with the bicycle parking entrance and the tram stop, Delftse Poort -->
+    <rect class="block" x="44" y="8" width="72" height="216" rx="3"/>
+    <rect class="square" x="44" y="228" width="46" height="144" rx="2"/>
+    <rect class="bike" x="48" y="232" width="15" height="1.4" rx="0.7"/>
+    <rect class="bike" x="48" y="236" width="15" height="1.4" rx="0.7"/>
+    <rect class="bike" x="48" y="240" width="15" height="1.4" rx="0.7"/>
+    <rect class="bike" x="48" y="244" width="15" height="1.4" rx="0.7"/>
+    <rect class="road" x="46" y="357" width="40" height="14" rx="1"/>
+    <path class="road-line" d="M46 361.5 H86 M46 366.5 H86"/>
+    <rect class="block block--tall" x="46" y="378" width="40" height="42" rx="2"/>
+    <rect class="block block--tall" x="54" y="428" width="40" height="38" rx="2"/>
+    <rect class="block" x="92" y="378" width="24" height="88" rx="2"/>
+    <rect class="block" x="44" y="476" width="72" height="62" rx="3"/>
+    <rect class="block" x="44" y="544" width="72" height="60" rx="3"/>
+    <!-- Proveniers side: Proveniersplein, Provenierssingel and Spoorsingel with their trees, the Provenierswijk -->
+    <rect class="square" x="488" y="206" width="60" height="264" rx="2"/>
+    <rect class="road" x="538" y="-2" width="12" height="206"/>
+    <rect class="water" x="552" y="-2" width="10" height="448" rx="1"/>
+    <rect class="water" x="552" y="436" width="50" height="10" rx="1"/>
+    <rect class="road" x="549" y="296" width="16" height="8" rx="1"/>
+    <rect class="road" x="549" y="396" width="16" height="8" rx="1"/>
+    <circle class="tree" cx="567" cy="14" r="3"/>
+    <circle class="tree" cx="567" cy="36" r="3"/>
+    <circle class="tree" cx="567" cy="58" r="3"/>
+    <circle class="tree" cx="567" cy="80" r="3"/>
+    <circle class="tree" cx="567" cy="102" r="3"/>
+    <circle class="tree" cx="567" cy="124" r="3"/>
+    <circle class="tree" cx="567" cy="146" r="3"/>
+    <circle class="tree" cx="567" cy="168" r="3"/>
+    <circle class="tree" cx="567" cy="190" r="3"/>
+    <circle class="tree" cx="567" cy="212" r="3"/>
+    <circle class="tree" cx="567" cy="234" r="3"/>
+    <circle class="tree" cx="567" cy="256" r="3"/>
+    <circle class="tree" cx="574" cy="430" r="3"/>
+    <circle class="tree" cx="590" cy="430" r="3"/>
+    <circle class="tree" cx="574" cy="452" r="3"/>
+    <circle class="tree" cx="590" cy="452" r="3"/>
+    <rect class="block" x="574" y="6" width="26" height="56" rx="2"/>
+    <rect class="block" x="574" y="68" width="26" height="60" rx="2"/>
+    <rect class="block" x="574" y="134" width="26" height="60" rx="2"/>
+    <rect class="block" x="574" y="200" width="26" height="60" rx="2"/>
+    <rect class="block" x="574" y="266" width="26" height="60" rx="2"/>
+    <rect class="block" x="574" y="332" width="26" height="60" rx="2"/>
+    <rect class="block" x="568" y="458" width="32" height="62" rx="2"/>
+    <rect class="block" x="568" y="526" width="32" height="76" rx="2"/>
+    <rect class="block" x="492" y="480" width="40" height="56" rx="2"/>
+  </g>
+  <g id="layer-passages">
+    <rect class="passage" x="92" y="276" width="416" height="48" rx="2"/>
+  </g>
+  <g id="layer-tracks">
+    <path id="track-2" d="M 147 0 L 147 600"/>
+    <path id="track-3" d="M 157 0 L 157 600"/>
+    <path id="track-4" d="M 199 0 L 199 600"/>
+    <path id="track-x-5" d="M 209 0 L 209 600"/>
+    <path id="track-6" d="M 219 0 L 219 600"/>
+    <path id="track-7" d="M 261 0 L 261 600"/>
+    <path id="track-8" d="M 271 0 L 271 600"/>
+    <path id="track-9" d="M 313 0 L 313 600"/>
+    <path id="track-x-10" d="M 323 0 L 323 600"/>
+    <path id="track-11" d="M 333 0 L 333 600"/>
+    <path id="track-12" d="M 375 0 L 375 600"/>
+    <path id="track-13" d="M 385 0 L 385 600"/>
+    <path id="track-14" d="M 427 0 L 427 600"/>
+    <path id="track-15" d="M 437 0 L 437 600"/>
+    <path id="track-16" d="M 479 0 L 479 600"/>
+  </g>
+  <g id="layer-platforms">
+    <rect id="platform-2" class="platform" x="120" y="100" width="22" height="400" rx="3"/>
+    <rect id="platform-3" class="platform" x="162" y="100" width="16" height="400" rx="3"/>
+    <rect id="platform-4" class="platform" x="178" y="100" width="16" height="400" rx="3"/>
+    <rect id="platform-6" class="platform" x="224" y="100" width="16" height="400" rx="3"/>
+    <rect id="platform-7" class="platform" x="240" y="100" width="16" height="400" rx="3"/>
+    <rect id="platform-8" class="platform" x="276" y="100" width="16" height="400" rx="3"/>
+    <rect id="platform-9" class="platform" x="292" y="100" width="16" height="400" rx="3"/>
+    <rect id="platform-11" class="platform" x="338" y="93" width="16" height="414" rx="3"/>
+    <rect id="platform-12" class="platform" x="354" y="93" width="16" height="414" rx="3"/>
+    <rect id="platform-13" class="platform" x="390" y="101" width="16" height="398" rx="3"/>
+    <rect id="platform-14" class="platform" x="406" y="101" width="16" height="398" rx="3"/>
+    <rect id="platform-15" class="platform" x="442" y="100" width="16" height="400" rx="3"/>
+    <rect id="platform-16" class="platform" x="458" y="100" width="16" height="400" rx="3"/>
+    <rect id="platform-2b" class="platform" x="121" y="101" width="20" height="199" rx="2"/>
+    <rect id="platform-2a" class="platform" x="121" y="300" width="20" height="199" rx="2"/>
+    <rect id="platform-3b" class="platform" x="163" y="101" width="14" height="199" rx="2"/>
+    <rect id="platform-3a" class="platform" x="163" y="300" width="14" height="199" rx="2"/>
+    <rect id="platform-4b" class="platform" x="179" y="101" width="14" height="199" rx="2"/>
+    <rect id="platform-4a" class="platform" x="179" y="300" width="14" height="199" rx="2"/>
+    <rect id="platform-6b" class="platform" x="225" y="101" width="14" height="199" rx="2"/>
+    <rect id="platform-6a" class="platform" x="225" y="300" width="14" height="199" rx="2"/>
+    <rect id="platform-7b" class="platform" x="241" y="101" width="14" height="199" rx="2"/>
+    <rect id="platform-7a" class="platform" x="241" y="300" width="14" height="199" rx="2"/>
+    <rect id="platform-8b" class="platform" x="277" y="101" width="14" height="199" rx="2"/>
+    <rect id="platform-8a" class="platform" x="277" y="300" width="14" height="199" rx="2"/>
+    <rect id="platform-9b" class="platform" x="293" y="101" width="14" height="199" rx="2"/>
+    <rect id="platform-9a" class="platform" x="293" y="300" width="14" height="199" rx="2"/>
+    <rect id="platform-11b" class="platform" x="339" y="94" width="14" height="206" rx="2"/>
+    <rect id="platform-11a" class="platform" x="339" y="300" width="14" height="206" rx="2"/>
+    <rect id="platform-12b" class="platform" x="355" y="94" width="14" height="206" rx="2"/>
+    <rect id="platform-12a" class="platform" x="355" y="300" width="14" height="206" rx="2"/>
+    <rect id="platform-13b" class="platform" x="391" y="102" width="14" height="198" rx="2"/>
+    <rect id="platform-13a" class="platform" x="391" y="300" width="14" height="198" rx="2"/>
+    <rect id="platform-14b" class="platform" x="407" y="102" width="14" height="198" rx="2"/>
+    <rect id="platform-14a" class="platform" x="407" y="300" width="14" height="198" rx="2"/>
+    <rect id="platform-15b" class="platform" x="443" y="101" width="14" height="199" rx="2"/>
+    <rect id="platform-15a" class="platform" x="443" y="300" width="14" height="199" rx="2"/>
+    <rect id="platform-16b" class="platform" x="459" y="101" width="14" height="199" rx="2"/>
+    <rect id="platform-16a" class="platform" x="459" y="300" width="14" height="199" rx="2"/>
+  </g>
+  <g id="layer-buildings">
+    <!-- main hall with its pointed roof towards the city -->
+    <polygon class="building" points="120,246 92,246 66,300 92,354 120,354"/>
+    <polygon class="roof" points="117,250 94,250 71,300 94,350 117,350"/>
+    <!-- north entrance, Proveniersplein -->
+    <rect class="building" x="488" y="272" width="22" height="56" rx="2"/>
+    <rect class="roof" x="491" y="276" width="16" height="48" rx="1.5"/>
+    <!-- escalators (west side of the passage) and stairs (east side) on every platform -->
+    <rect class="stairs" x="126.5" y="263" width="9" height="13" rx="1"/>
+    <path class="stairs-line" d="M129.5 263 V276 M132.5 263 V276"/>
+    <rect class="stairs" x="127" y="324" width="8" height="13" rx="1"/>
+    <path class="stairs-line" d="M127 327 H135 M127 330 H135 M127 333 H135"/>
+    <rect class="stairs" x="173.5" y="263" width="9" height="13" rx="1"/>
+    <path class="stairs-line" d="M176.5 263 V276 M179.5 263 V276"/>
+    <rect class="stairs" x="174" y="324" width="8" height="13" rx="1"/>
+    <path class="stairs-line" d="M174 327 H182 M174 330 H182 M174 333 H182"/>
+    <rect class="stairs" x="235.5" y="263" width="9" height="13" rx="1"/>
+    <path class="stairs-line" d="M238.5 263 V276 M241.5 263 V276"/>
+    <rect class="stairs" x="236" y="324" width="8" height="13" rx="1"/>
+    <path class="stairs-line" d="M236 327 H244 M236 330 H244 M236 333 H244"/>
+    <rect class="stairs" x="287.5" y="263" width="9" height="13" rx="1"/>
+    <path class="stairs-line" d="M290.5 263 V276 M293.5 263 V276"/>
+    <rect class="stairs" x="288" y="324" width="8" height="13" rx="1"/>
+    <path class="stairs-line" d="M288 327 H296 M288 330 H296 M288 333 H296"/>
+    <rect class="stairs" x="349.5" y="263" width="9" height="13" rx="1"/>
+    <path class="stairs-line" d="M352.5 263 V276 M355.5 263 V276"/>
+    <rect class="stairs" x="350" y="324" width="8" height="13" rx="1"/>
+    <path class="stairs-line" d="M350 327 H358 M350 330 H358 M350 333 H358"/>
+    <rect class="stairs" x="401.5" y="263" width="9" height="13" rx="1"/>
+    <path class="stairs-line" d="M404.5 263 V276 M407.5 263 V276"/>
+    <rect class="stairs" x="402" y="324" width="8" height="13" rx="1"/>
+    <path class="stairs-line" d="M402 327 H410 M402 330 H410 M402 333 H410"/>
+    <rect class="stairs" x="453.5" y="263" width="9" height="13" rx="1"/>
+    <path class="stairs-line" d="M456.5 263 V276 M459.5 263 V276"/>
+    <rect class="stairs" x="454" y="324" width="8" height="13" rx="1"/>
+    <path class="stairs-line" d="M454 327 H462 M454 330 H462 M454 333 H462"/>
+  </g>
+  <g id="layer-labels">
+    <text class="label" x="102" y="300" font-size="5.4" text-anchor="middle" transform="rotate(-90 102 300)" data-en="Rotterdam Centraal">Rotterdam Centraal</text>
+    <text class="label label--muted" x="110" y="300" font-size="3.2" text-anchor="middle" transform="rotate(-90 110 300)" data-en="station hall">stationshal</text>
+    <text class="label label--muted" x="499" y="300" font-size="3" text-anchor="middle" transform="rotate(-90 499 300)" data-en="north entrance">noordingang</text>
+    <text class="label label--muted" x="354" y="301.1" font-size="3" text-anchor="middle" data-en="passage">passage</text>
+    <text class="label" x="61" y="270" font-size="3.6" text-anchor="middle" data-en="Stationsplein">Stationsplein</text>
+    <text class="label label--muted" x="36" y="150" font-size="3.4" text-anchor="middle" transform="rotate(-90 36 150)" data-en="Weena">Weena</text>
+    <text class="label label--muted" x="14" y="262" font-size="3.4" text-anchor="middle" transform="rotate(-90 14 262)" data-en="Kruisplein">Kruisplein</text>
+    <text class="label" x="70" y="426" font-size="3.8" text-anchor="middle" data-en="Delftse Poort">Delftse Poort</text>
+    <text class="label" x="520" y="380" font-size="4" text-anchor="middle" transform="rotate(-90 520 380)" data-en="Proveniersplein">Proveniersplein</text>
+  </g>
+  <g id="layer-nodes">
+    <circle id="node-p2a" cx="131" cy="400" r="1"/>
+    <circle id="node-p2b" cx="131" cy="200" r="1"/>
+    <circle id="node-p3a" cx="170" cy="400" r="1"/>
+    <circle id="node-p3b" cx="170" cy="200" r="1"/>
+    <circle id="node-p4a" cx="186" cy="400" r="1"/>
+    <circle id="node-p4b" cx="186" cy="200" r="1"/>
+    <circle id="node-p6a" cx="232" cy="400" r="1"/>
+    <circle id="node-p6b" cx="232" cy="200" r="1"/>
+    <circle id="node-p7a" cx="248" cy="400" r="1"/>
+    <circle id="node-p7b" cx="248" cy="200" r="1"/>
+    <circle id="node-p8a" cx="284" cy="400" r="1"/>
+    <circle id="node-p8b" cx="284" cy="200" r="1"/>
+    <circle id="node-p9a" cx="300" cy="400" r="1"/>
+    <circle id="node-p9b" cx="300" cy="200" r="1"/>
+    <circle id="node-p11a" cx="346" cy="404" r="1"/>
+    <circle id="node-p11b" cx="346" cy="197" r="1"/>
+    <circle id="node-p12a" cx="362" cy="404" r="1"/>
+    <circle id="node-p12b" cx="362" cy="197" r="1"/>
+    <circle id="node-p13a" cx="398" cy="400" r="1"/>
+    <circle id="node-p13b" cx="398" cy="201" r="1"/>
+    <circle id="node-p14a" cx="414" cy="400" r="1"/>
+    <circle id="node-p14b" cx="414" cy="201" r="1"/>
+    <circle id="node-p15a" cx="450" cy="400" r="1"/>
+    <circle id="node-p15b" cx="450" cy="200" r="1"/>
+    <circle id="node-p16a" cx="466" cy="400" r="1"/>
+    <circle id="node-p16b" cx="466" cy="200" r="1"/>
+    <circle id="node-es2" cx="131" cy="262" r="1"/>
+    <circle id="node-st2" cx="131" cy="338" r="1"/>
+    <circle id="node-pa2w" cx="131" cy="282" r="1"/>
+    <circle id="node-pa2o" cx="131" cy="318" r="1"/>
+    <circle id="node-es3" cx="178" cy="262" r="1"/>
+    <circle id="node-st3" cx="178" cy="338" r="1"/>
+    <circle id="node-pa3w" cx="178" cy="282" r="1"/>
+    <circle id="node-pa3o" cx="178" cy="318" r="1"/>
+    <circle id="node-es6" cx="240" cy="262" r="1"/>
+    <circle id="node-st6" cx="240" cy="338" r="1"/>
+    <circle id="node-pa6w" cx="240" cy="282" r="1"/>
+    <circle id="node-pa6o" cx="240" cy="318" r="1"/>
+    <circle id="node-es8" cx="292" cy="262" r="1"/>
+    <circle id="node-st8" cx="292" cy="338" r="1"/>
+    <circle id="node-pa8w" cx="292" cy="282" r="1"/>
+    <circle id="node-pa8o" cx="292" cy="318" r="1"/>
+    <circle id="node-es11" cx="354" cy="262" r="1"/>
+    <circle id="node-st11" cx="354" cy="338" r="1"/>
+    <circle id="node-pa11w" cx="354" cy="282" r="1"/>
+    <circle id="node-pa11o" cx="354" cy="318" r="1"/>
+    <circle id="node-es13" cx="406" cy="262" r="1"/>
+    <circle id="node-st13" cx="406" cy="338" r="1"/>
+    <circle id="node-pa13w" cx="406" cy="282" r="1"/>
+    <circle id="node-pa13o" cx="406" cy="318" r="1"/>
+    <circle id="node-es15" cx="458" cy="262" r="1"/>
+    <circle id="node-st15" cx="458" cy="338" r="1"/>
+    <circle id="node-pa15w" cx="458" cy="282" r="1"/>
+    <circle id="node-pa15o" cx="458" cy="318" r="1"/>
+    <circle id="node-hall" cx="104" cy="300" r="1"/>
+    <circle id="node-north" cx="499" cy="300" r="1"/>
+  </g>
+</svg>
