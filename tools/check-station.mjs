@@ -1,8 +1,9 @@
 #!/usr/bin/env node
 /* Perronjoy — station checker.
-   Usage:  node tools/check-station.mjs <station-id>   (for example: utrecht-centraal)
-           node tools/check-station.mjs --all
-   Checks site/stations/<id>/station.json and scene.svg against SPEC.md.
+   Usage:  node tools/check-station.mjs [station-id ...]   (no id: every folder)
+           npm run check -- utrecht-centraal
+   Checks site/stations/<id>/station.json, scene.svg and NOTES.md against
+   docs/SPEC.md. Every message names the rule it breaks.
    Exit code 1 when there is at least one ERROR. Warnings do not fail. */
 
 import { readFileSync, existsSync, statSync, readdirSync } from 'node:fs';
@@ -15,10 +16,12 @@ const LIMITS = { svgKB: 150, jsonKB: 60 };
 const NODE_KINDS = ['platform', 'stairs', 'escalator', 'lift', 'ramp', 'passage', 'hall', 'exit', 'waypoint'];
 const EDGE_KINDS = ['walk', 'stairs', 'escalator', 'lift', 'ramp'];
 const STATUSES = ['placeholder', 'draft', 'ready'];
+const SCENE_CLASSES = new Set(['ground', 'block', 'block--tall', 'roof', 'building', 'square', 'road', 'road-line', 'park', 'water', 'tree', 'bike',
+  'platform', 'passage', 'passage--above', 'stairs', 'stairs-line', 'label', 'label--muted', 'label--water']);
+const SURROUNDING_CLASSES = ['block', 'building', 'square', 'road', 'park', 'water', 'tree', 'bike'];
 
 const args = process.argv.slice(2);
-if (!args.length) { console.error('Usage: node tools/check-station.mjs <station-id> | --all'); process.exit(2); }
-const ids = args.includes('--all')
+const ids = !args.length || args.includes('--all')
   ? readdirSync(STATIONS).filter((d) => statSync(join(STATIONS, d)).isDirectory())
   : args;
 
@@ -162,9 +165,9 @@ function checkStation(id) {
   if (svgKB > LIMITS.svgKB) err(`scene.svg is ${svgKB.toFixed(0)} KB, limit ${LIMITS.svgKB} KB`);
   if (!/<svg[^>]*viewBox="[^"]+"/.test(svg)) err('scene.svg needs a viewBox on the <svg> element');
   if (/<script/i.test(svg)) err('scene.svg must not contain <script>');
-  if (/<image/i.test(svg)) err('scene.svg must not contain raster <image> elements');
+  if (/<image|<foreignObject/i.test(svg)) err('scene.svg must not contain <image> or <foreignObject>');
   if (/href="https?:/i.test(svg)) err('scene.svg must not reference external URLs');
-  if (/<style/i.test(svg)) warn('scene.svg contains <style>; shared colours come from site/css/site.css, keep local styles minimal');
+  if (/<style/i.test(svg)) err('scene.svg must not contain <style>; colours come from site/css/site.css (SPEC 5.3)');
   ['layer-ground', 'layer-tracks', 'layer-platforms', 'layer-nodes'].forEach((l) => { if (!new RegExp(`id="${l}"`).test(svg)) err(`scene.svg needs a group with id="${l}"`); });
   const ids = new Set(); for (const m of svg.matchAll(/\sid="([^"]+)"/g)) { if (ids.has(m[1])) err(`duplicate id "${m[1]}" in scene.svg`); ids.add(m[1]); }
   platforms.forEach((p) => {
@@ -192,8 +195,40 @@ function checkStation(id) {
   });
   if (/<text[^>]*>\s*(lorem|ipsum|todo|xxx)/i.test(svg)) err('scene.svg contains placeholder text');
 
+  // Languages: every label has English text (SPEC §5.4).
+  for (const m of svg.matchAll(/<text([^>]*)>([^<]*)<\/text>/g)) {
+    if (!/\sdata-en="[^"]+"/.test(m[1])) err(`<text> "${m[2].trim()}" has no data-en="…" English text (SPEC 5.4)`);
+  }
+  if (/<tspan/i.test(svg)) err('scene.svg uses <tspan>; use one <text> per line so the language switch works (SPEC 5.4)');
+
+  // Themes: colours come from classes (SPEC 5.3).
+  for (const m of svg.matchAll(/\s(fill|stroke)="(#[0-9a-f]{3,8}|rgb[^"]*|hsl[^"]*|[a-z]+)"/gi)) {
+    if (['none', 'currentcolor', 'transparent'].includes(m[2].toLowerCase())) continue;
+    err(`hard-coded ${m[1]}="${m[2]}" breaks the dark theme; use a class (SPEC 5.3)`);
+  }
+  if (/style="[^"]*(fill|stroke|color)\s*:/i.test(svg)) err('inline style with a colour breaks the dark theme; use a class (SPEC 5.3)');
+  const unknown = new Set();
+  for (const m of svg.matchAll(/\sclass="([^"]+)"/g)) m[1].split(/\s+/).forEach((c) => { if (c && !SCENE_CLASSES.has(c)) unknown.add(c); });
+  if (unknown.size) warn(`unknown class(es) ${[...unknown].join(', ')}: they get no colour in either theme (SPEC 5.3)`);
+
+  // Surroundings: enough context to look real (SPEC 5.5).
+  const groundMatch = svg.match(/<g[^>]*id="layer-ground"[^>]*>([\s\S]*?)<\/g>/);
+  const ground = groundMatch ? groundMatch[1] : '';
+  const counts = {};
+  SURROUNDING_CLASSES.forEach((c) => { counts[c] = (ground.match(new RegExp(`class="[^"]*\\b${c}\\b[^"]*"`, 'g')) || []).length; });
+  const total = Object.values(counts).reduce((a, b) => a + b, 0);
+  const kinds = Object.values(counts).filter((n) => n > 0).length;
+  if (total < 15) warn(`only ${total} surrounding shapes in layer-ground; aim for 15–80 (SPEC 5.5)`);
+  if (kinds < 4) warn(`only ${kinds} kinds of surroundings (block, road, water, park, square, tree, bike, building); use at least 4 (SPEC 5.5)`);
+  if (total > 200) warn(`${total} surrounding shapes: keep the scene quiet and the file small (SPEC 5.5)`);
+
   /* ---- NOTES.md ---- */
-  if (id !== '_template' && !existsSync(join(dir, 'NOTES.md'))) err('NOTES.md is missing (sources and VERIFY list)');
+  const notesPath = join(dir, 'NOTES.md');
+  if (!existsSync(notesPath)) err('NOTES.md is missing (SPEC 3)');
+  else {
+    const notes = readFileSync(notesPath, 'utf8');
+    ['## Sources', '## Facts', '## Surroundings', '## VERIFY', '## Shell issues'].forEach((h) => { if (!notes.includes(h)) err(`NOTES.md needs a "${h}" section (copy the template headings)`); });
+  }
 
   info.push(`station.json ${jsonKB.toFixed(0)} KB, scene.svg ${svgKB.toFixed(0)} KB`);
   info.push(`${platforms.length} platforms, ${nodes.length} nodes, ${edges.length} edges, ${arrivals.length} arrivals, ${departures.length} departures`);

@@ -1,8 +1,10 @@
-name: Publish site to GitHub Pages
+name: Check stations and publish to GitHub Pages
 
+# Every pull request is checked. Only main is published.
 on:
   push:
     branches: [main]
+  pull_request:
   workflow_dispatch:
 
 permissions:
@@ -11,8 +13,8 @@ permissions:
   id-token: write
 
 concurrency:
-  group: pages
-  cancel-in-progress: true
+  group: pages-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   check:
@@ -23,10 +25,11 @@ jobs:
         with:
           node-version: 22
       - name: Validate station folders
-        run: node tools/check-station.mjs --all
+        run: node tools/check-station.mjs
 
   deploy:
     needs: check
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
     runs-on: ubuntu-latest
     environment:
       name: github-pages

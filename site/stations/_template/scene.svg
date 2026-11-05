@@ -1,37 +1,79 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  Perronjoy scene template. A small fictional station with 4 platforms.
-  Copy this file to start a real station. Rules are in SPEC.md.
+  Perronjoy scene template: a small fictional station with 4 platforms.
+  Copy this file to start a real station. All rules: docs/SPEC.md section 5.
 
-  Coordinates: 1 unit ≈ 1 metre along the tracks. Tracks run from the TOP of
-  the scene to the BOTTOM. Platform numbers increase from left to right.
-  Layers must keep these ids and this order. Do not put transform="" on
-  layers, platform rects or node circles.
+  - 1 unit ≈ 1 metre along the tracks. Tracks run from the TOP to the BOTTOM.
+  - Platform numbers increase from LEFT to RIGHT.
+  - Keep the layer ids and their order. No transform on layers, platform
+    rects or node circles. Use classes, never colours: the dark theme
+    depends on it.
+  - Every <text> is Dutch and has data-en with the English text. Proper
+    names stay the same in both languages.
 -->
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 420" data-perronjoy-scene="1">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-40 0 260 420" data-perronjoy-scene="1">
   <title>Voorbeeldstation</title>
 
-  <!-- 1. Ground and surroundings -->
+  <!-- 1. Ground and surroundings: city blocks, roads, water, parks, trees, bikes -->
   <g id="layer-ground">
-    <rect class="ground" x="0" y="0" width="200" height="420"/>
-    <rect class="block" x="156" y="30" width="40" height="70" rx="4"/>
-    <rect class="block" x="156" y="300" width="40" height="90" rx="4"/>
-    <rect class="block" x="4" y="20" width="30" height="80" rx="4"/>
-    <rect class="block" x="4" y="320" width="30" height="70" rx="4"/>
-    <circle class="tree" cx="150" cy="150" r="5"/>
-    <circle class="tree" cx="158" cy="162" r="4"/>
-    <circle class="tree" cx="150" cy="262" r="5"/>
-    <circle class="tree" cx="22" cy="130" r="4"/>
-    <circle class="tree" cx="14" cy="295" r="4"/>
+    <rect class="ground" x="-40" y="0" width="260" height="420"/>
+
+    <!-- canal on the city side, with trees along the quay -->
+    <rect class="water" x="-40" y="0" width="11" height="420"/>
+    <circle class="tree" cx="-24" cy="30" r="3.4"/>
+    <circle class="tree" cx="-24" cy="62" r="3"/>
+    <circle class="tree" cx="-24" cy="94" r="3.4"/>
+    <circle class="tree" cx="-24" cy="318" r="3.2"/>
+    <circle class="tree" cx="-24" cy="350" r="3.4"/>
+    <circle class="tree" cx="-24" cy="384" r="3"/>
+
+    <!-- city blocks beside the square -->
+    <rect class="block" x="-19" y="14" width="19" height="40" rx="2"/>
+    <rect class="block block--tall" x="-19" y="60" width="19" height="34" rx="2"/>
+    <rect class="block" x="-19" y="100" width="19" height="34" rx="2"/>
+    <rect class="block" x="-19" y="290" width="19" height="44" rx="2"/>
+    <rect class="block" x="-19" y="340" width="19" height="60" rx="2"/>
+
+    <!-- station square in front of the hall, with bike parking -->
+    <rect class="square" x="-21" y="140" width="23" height="144" rx="2"/>
+    <rect class="bike" x="-17" y="146" width="15" height="1.4" rx="0.7"/>
+    <rect class="bike" x="-17" y="150" width="15" height="1.4" rx="0.7"/>
+    <rect class="bike" x="-17" y="154" width="15" height="1.4" rx="0.7"/>
+    <rect class="bike" x="-17" y="270" width="15" height="1.4" rx="0.7"/>
+    <rect class="bike" x="-17" y="274" width="15" height="1.4" rx="0.7"/>
+    <rect class="bike" x="-17" y="278" width="15" height="1.4" rx="0.7"/>
+    <circle class="tree" cx="-14" cy="200" r="2.6"/>
+    <circle class="tree" cx="-14" cy="222" r="2.6"/>
+
+    <!-- road on the far side of the tracks -->
+    <rect class="road" x="156" y="0" width="14" height="420"/>
+    <path class="road-line" d="M163 0 V420"/>
+
+    <!-- blocks and a park beyond the road -->
+    <rect class="block" x="176" y="12" width="40" height="56" rx="3"/>
+    <rect class="block block--tall" x="176" y="76" width="40" height="64" rx="3"/>
+    <rect class="park" x="176" y="148" width="40" height="132" rx="4"/>
+    <circle class="tree" cx="186" cy="162" r="4.4"/>
+    <circle class="tree" cx="204" cy="176" r="5"/>
+    <circle class="tree" cx="190" cy="204" r="3.8"/>
+    <circle class="tree" cx="208" cy="226" r="4.6"/>
+    <circle class="tree" cx="186" cy="248" r="4"/>
+    <circle class="tree" cx="204" cy="266" r="3.6"/>
+    <rect class="block" x="176" y="288" width="40" height="50" rx="3"/>
+    <rect class="block" x="176" y="346" width="40" height="64" rx="3"/>
+
+    <!-- a few trees between the tracks and the road -->
+    <circle class="tree" cx="150" cy="120" r="3"/>
+    <circle class="tree" cx="150" cy="300" r="3"/>
   </g>
 
-  <!-- 2. Passages below the platforms (tunnels) -->
+  <!-- 2. Passages BELOW the platforms (tunnels) -->
   <g id="layer-passages">
-    <rect class="passage" x="10" y="204" width="150" height="12" rx="2"/>
+    <rect class="passage" x="10" y="204" width="146" height="12" rx="2"/>
   </g>
 
-  <!-- 3. Track centrelines. Invisible. The shell draws the ballast and rails.
-       One path per platform number, id="track-N", drawn top to bottom. -->
+  <!-- 3. Track centrelines. Invisible: the shell draws ballast, sleepers and rails.
+       One path per platform number, id="track-N", drawn from top to bottom. -->
   <g id="layer-tracks">
     <path id="track-1" d="M 61 0 L 61 420"/>
     <path id="track-2" d="M 71 0 L 71 420"/>
@@ -48,29 +90,30 @@
     <rect id="platform-4" class="platform" x="128" y="60" width="16" height="300" rx="3"/>
   </g>
 
-  <!-- 5. Buildings, stairs, bridges above the platforms -->
+  <!-- 5. Buildings, halls and bridges ABOVE the platforms, and stairs marks -->
   <g id="layer-buildings">
-    <rect class="building" x="2" y="150" width="34" height="120" rx="3"/>
-    <!-- stairs down into the tunnel: a light block with white steps -->
-    <g class="stairs-group">
-      <rect class="stairs" x="45" y="188" width="6" height="16" rx="1"/>
-      <path class="stairs-line" d="M45 191 H51 M45 194 H51 M45 197 H51 M45 200 H51"/>
-      <rect class="stairs" x="89" y="188" width="6" height="16" rx="1"/>
-      <path class="stairs-line" d="M89 191 H95 M89 194 H95 M89 197 H95 M89 200 H95"/>
-      <rect class="stairs" x="133" y="188" width="6" height="16" rx="1"/>
-      <path class="stairs-line" d="M133 191 H139 M133 194 H139 M133 197 H139 M133 200 H139"/>
-    </g>
+    <rect class="building" x="4" y="150" width="32" height="120" rx="3"/>
+    <rect class="roof" x="8" y="156" width="24" height="108" rx="2"/>
+    <rect class="stairs" x="45" y="188" width="6" height="16" rx="1"/>
+    <path class="stairs-line" d="M45 191 H51 M45 194 H51 M45 197 H51 M45 200 H51"/>
+    <rect class="stairs" x="89" y="188" width="6" height="16" rx="1"/>
+    <path class="stairs-line" d="M89 191 H95 M89 194 H95 M89 197 H95 M89 200 H95"/>
+    <rect class="stairs" x="133" y="188" width="6" height="16" rx="1"/>
+    <path class="stairs-line" d="M133 191 H139 M133 194 H139 M133 197 H139 M133 200 H139"/>
   </g>
 
-  <!-- 6. Text labels. Font sizes in scene units. -->
+  <!-- 6. Text labels. Font sizes in scene units (3–6). Every text has data-en. -->
   <g id="layer-labels">
-    <text class="label" x="19" y="205" font-size="5" text-anchor="middle">Voorbeeld</text>
-    <text class="label label--muted" x="19" y="211" font-size="3.4" text-anchor="middle">stationshal</text>
-    <text class="label label--muted" x="85" y="213" font-size="3" text-anchor="middle">tunnel</text>
+    <text class="label" x="20" y="205" font-size="5" text-anchor="middle" data-en="Voorbeeld">Voorbeeld</text>
+    <text class="label label--muted" x="20" y="211" font-size="3.2" text-anchor="middle" data-en="station hall">stationshal</text>
+    <text class="label label--muted" x="85" y="213" font-size="3" text-anchor="middle" data-en="tunnel">tunnel</text>
+    <text class="label label--muted" x="-9.5" y="214" font-size="3" text-anchor="middle" data-en="Stationsplein">Stationsplein</text>
+    <text class="label label--water" x="-34.5" y="214" font-size="3.4" text-anchor="middle" transform="rotate(-90 -34.5 214)" data-en="Singel">Singel</text>
+    <text class="label label--muted" x="196" y="214" font-size="3.4" text-anchor="middle" data-en="Stadspark">Stadspark</text>
   </g>
 
   <!-- 7. Walking-graph nodes. Invisible circles, id="node-ID".
-       Platform nodes: id="node-pN" or "node-pNa" / "node-pNb" when the platform has sections. -->
+       Platform nodes: node-pN, or node-pNa / node-pNb when the platform has sections. -->
   <g id="layer-nodes">
     <circle id="node-p1a" cx="48" cy="120" r="1"/>
     <circle id="node-p1b" cx="48" cy="250" r="1"/>

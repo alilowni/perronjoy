@@ -3,7 +3,7 @@
   "name": "Voorbeeldstation",
   "city": "Voorbeeld",
   "status": "ready",
-  "_comment": "Fictional example station. Copy this file to start a real station. Every field is explained in SPEC.md.",
+  "_comment": "Fictional example station. Copy this file to start a real station. Every field is explained in docs/SPEC.md.",
 
   "orientation": { "north_deg": 0 },
 
