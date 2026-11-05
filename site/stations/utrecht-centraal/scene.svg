@@ -1,0 +1,272 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Perronjoy scene: Utrecht Centraal. Contract: docs/SPEC.md section 5.
+  Rotated so that platform numbers run left to right: the top of the scene is the
+  south-south-east end ('s-Hertogenbosch, Arnhem), the bottom the north-north-west end
+  (Amsterdam, Gouda, Zwolle). Left is the city side (Hoog Catharijne), right the
+  Jaarbeurs side. 1 unit = 1 metre along the tracks; across the tracks the station is
+  widened about x2.6, the surroundings are compressed. Sources: NOTES.md.
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 632 700" data-perronjoy-scene="1">
+  <title>Utrecht Centraal</title>
+  <g id="layer-ground">
+    <rect class="ground" x="0" y="0" width="632" height="700"/>
+    <!-- water -->
+    <rect class="water" x="10" y="-2" width="13" height="704" rx="2"/>
+    <rect class="water" x="22" y="562" width="75" height="22" rx="2"/>
+    <rect class="water" x="532" y="564" width="102" height="24" rx="2"/>
+    <rect class="water" x="560" y="-2" width="7" height="100" rx="2"/>
+    <rect class="water" x="578" y="150" width="18" height="62" rx="3"/>
+    <!-- Moreelsepark -->
+    <rect class="park" x="28" y="-2" width="38" height="124" rx="4"/>
+    <!-- squares: Stationsplein Oost, bus and tram square (Centrumzijde), Stadsplateau, Jaarbeursplein, bus square (Jaarbeurszijde) -->
+    <rect class="square" x="72" y="342" width="25" height="214" rx="2"/>
+    <rect class="square" x="104" y="136" width="93" height="122" rx="2"/>
+    <rect class="square" x="556" y="262" width="14" height="78" rx="2"/>
+    <rect class="square" x="572" y="318" width="27" height="80" rx="2"/>
+    <rect class="square" x="534" y="142" width="22" height="82" rx="2"/>
+    <!-- roads: Moreelsepark, Laan van Puntenburg, Croeselaan, Westplein; the tram to the Uithof -->
+    <rect class="road" x="23" y="125" width="81" height="6"/>
+    <rect class="road" x="98" y="-2" width="6" height="127"/>
+    <rect class="road" x="602" y="-2" width="8" height="538"/>
+    <path class="road-line" d="M606 0 V536"/>
+    <rect class="road" x="560" y="538" width="74" height="8"/>
+    <rect class="road" x="183" y="-2" width="12" height="242" rx="1"/>
+    <path class="road-line" d="M189 0 V238"/>
+    <!-- Hoog Catharijne: Godebaldkwartier, Radboudkwartier, Gildenkwartier -->
+    <rect class="block" x="28" y="138" width="40" height="174" rx="3"/>
+    <rect class="block" x="28" y="318" width="40" height="110" rx="3"/>
+    <rect class="block" x="28" y="434" width="40" height="106" rx="3"/>
+    <!-- city side: Moreelsepark 2, HGB IV, Smakkelaarsburcht -->
+    <rect class="block" x="72" y="30" width="24" height="66" rx="2"/>
+    <rect class="block" x="108" y="36" width="68" height="68" rx="3"/>
+    <rect class="block" x="30" y="606" width="66" height="94" rx="3"/>
+    <!-- Jaarbeurs side: Rabobank, Beatrix Theater, Stadskantoor, WTC, hotels, Jaarbeurs halls, houses on the Leidseweg -->
+    <rect class="block block--tall" x="574" y="8" width="24" height="48" rx="3"/>
+    <rect class="block" x="574" y="60" width="24" height="36" rx="3"/>
+    <rect class="block" x="572" y="226" width="27" height="88" rx="3"/>
+    <rect class="block block--tall" x="534" y="342" width="20" height="104" rx="2"/>
+    <rect class="block block--tall" x="559" y="380" width="11" height="56" rx="2"/>
+    <rect class="block" x="558" y="486" width="10" height="44" rx="2"/>
+    <rect class="block" x="573" y="486" width="26" height="42" rx="2"/>
+    <rect class="block" x="614" y="150" width="26" height="150" rx="3"/>
+    <rect class="block" x="614" y="306" width="26" height="134" rx="3"/>
+    <rect class="block" x="540" y="598" width="60" height="42" rx="2"/>
+    <rect class="block" x="614" y="598" width="26" height="52" rx="2"/>
+    <!-- trees: Moreelsepark -->
+    <circle class="tree" cx="36" cy="12" r="4.4"/>
+    <circle class="tree" cx="54" cy="22" r="5"/>
+    <circle class="tree" cx="42" cy="44" r="4.2"/>
+    <circle class="tree" cx="60" cy="56" r="4.6"/>
+    <circle class="tree" cx="34" cy="74" r="4.8"/>
+    <circle class="tree" cx="51" cy="86" r="4.2"/>
+    <circle class="tree" cx="60" cy="106" r="3.8"/>
+    <circle class="tree" cx="38" cy="108" r="4.4"/>
+    <!-- trees: Willemsplantsoen, on the far bank of the singel -->
+    <circle class="tree" cx="5" cy="8" r="3.2"/>
+    <circle class="tree" cx="5" cy="30" r="3.2"/>
+    <circle class="tree" cx="5" cy="52" r="3.2"/>
+    <circle class="tree" cx="5" cy="152" r="3.2"/>
+    <circle class="tree" cx="5" cy="174" r="3.2"/>
+    <circle class="tree" cx="5" cy="196" r="3.2"/>
+    <!-- trees: Croeselaan (planted 2018) -->
+    <circle class="tree" cx="614" cy="20" r="3"/>
+    <circle class="tree" cx="598" cy="70" r="3"/>
+    <circle class="tree" cx="614" cy="120" r="3"/>
+    <circle class="tree" cx="598" cy="180" r="3"/>
+    <circle class="tree" cx="614" cy="470" r="3"/>
+    <circle class="tree" cx="598" cy="500" r="3"/>
+    <circle class="tree" cx="614" cy="520" r="3"/>
+    <!-- trees: Jaarbeursplein (planted 2018, positions schematic) -->
+    <circle class="tree" cx="577" cy="324" r="2.8"/>
+    <circle class="tree" cx="594" cy="330" r="2.8"/>
+    <circle class="tree" cx="577" cy="392" r="2.8"/>
+    <circle class="tree" cx="594" cy="386" r="2.8"/>
+    <!-- trees: Van Sijpesteijnkade, along the Leidse Rijn -->
+    <circle class="tree" cx="537" cy="532" r="3"/>
+    <circle class="tree" cx="548" cy="534" r="3"/>
+    <circle class="tree" cx="539" cy="558" r="3"/>
+    <circle class="tree" cx="550" cy="559" r="3"/>
+    <!-- bicycle parking: Stationsplein (underground, entrance on the square), Jaarbeursplein -->
+    <rect class="bike" x="77" y="444" width="15" height="1.4" rx="0.7"/>
+    <rect class="bike" x="77" y="448" width="15" height="1.4" rx="0.7"/>
+    <rect class="bike" x="77" y="452" width="15" height="1.4" rx="0.7"/>
+    <rect class="bike" x="577" y="410" width="15" height="1.4" rx="0.7"/>
+    <rect class="bike" x="577" y="414" width="15" height="1.4" rx="0.7"/>
+    <rect class="bike" x="577" y="418" width="15" height="1.4" rx="0.7"/>
+  </g>
+  <g id="layer-passages">
+  </g>
+  <g id="layer-tracks">
+    <path id="track-1" d="M 100 384 L 100 700"/>
+    <path id="track-2" d="M 142 384 L 142 700"/>
+    <path id="track-3" d="M 152 384 L 152 700"/>
+    <path id="track-4" d="M 194 360 L 194 700"/>
+    <path id="track-5" d="M 204 0 L 204 700"/>
+    <path id="track-7" d="M 252 0 L 252 700"/>
+    <path id="track-8" d="M 262 0 L 262 700"/>
+    <path id="track-9" d="M 304 0 L 304 700"/>
+    <path id="track-11" d="M 324 0 L 324 700"/>
+    <path id="track-12" d="M 366 0 L 366 700"/>
+    <path id="track-14" d="M 376 0 L 376 700"/>
+    <path id="track-15" d="M 420 0 L 420 700"/>
+    <path id="track-18" d="M 430 0 L 430 700"/>
+    <path id="track-19" d="M 474 0 L 474 700"/>
+    <path id="track-20" d="M 484 0 L 484 700"/>
+    <path id="track-21" d="M 526 0 L 526 700"/>
+    <path id="track-x-10" d="M 314 0 L 314 700"/>
+  </g>
+  <g id="layer-platforms">
+    <rect class="platform" x="135" y="372" width="40" height="14" rx="2"/>
+    <rect id="platform-1" class="platform" x="105" y="374" width="16" height="248" rx="3"/>
+    <rect id="platform-2" class="platform" x="121" y="374" width="16" height="248" rx="3"/>
+    <rect id="platform-3" class="platform" x="157" y="374" width="16" height="266" rx="3"/>
+    <rect id="platform-4" class="platform" x="173" y="356" width="16" height="284" rx="3"/>
+    <rect id="platform-5" class="platform" x="209" y="105" width="19" height="445" rx="3"/>
+    <rect id="platform-7" class="platform" x="228" y="105" width="19" height="445" rx="3"/>
+    <rect id="platform-8" class="platform" x="267" y="103" width="16" height="422" rx="3"/>
+    <rect id="platform-9" class="platform" x="283" y="103" width="16" height="422" rx="3"/>
+    <rect id="platform-11" class="platform" x="329" y="56" width="16" height="456" rx="3"/>
+    <rect id="platform-12" class="platform" x="345" y="56" width="16" height="456" rx="3"/>
+    <rect id="platform-14" class="platform" x="381" y="62" width="17" height="450" rx="3"/>
+    <rect id="platform-15" class="platform" x="398" y="62" width="17" height="450" rx="3"/>
+    <rect id="platform-18" class="platform" x="435" y="68" width="17" height="462" rx="3"/>
+    <rect id="platform-19" class="platform" x="452" y="68" width="17" height="462" rx="3"/>
+    <rect id="platform-20" class="platform" x="489" y="64" width="16" height="356" rx="3"/>
+    <rect id="platform-21" class="platform" x="505" y="64" width="16" height="356" rx="3"/>
+    <rect id="platform-1a" class="platform" x="106" y="498.6" width="14" height="122.4" rx="2.4"/>
+    <rect id="platform-1b" class="platform" x="106" y="375" width="14" height="122.4" rx="2.4"/>
+    <rect id="platform-2a" class="platform" x="122" y="498.6" width="14" height="122.4" rx="2.4"/>
+    <rect id="platform-2b" class="platform" x="122" y="375" width="14" height="122.4" rx="2.4"/>
+    <rect id="platform-3a" class="platform" x="158" y="507.6" width="14" height="131.4" rx="2.4"/>
+    <rect id="platform-3b" class="platform" x="158" y="375" width="14" height="131.4" rx="2.4"/>
+    <rect id="platform-4a" class="platform" x="174" y="498.6" width="14" height="140.4" rx="2.4"/>
+    <rect id="platform-4b" class="platform" x="174" y="357" width="14" height="140.4" rx="2.4"/>
+    <rect id="platform-5a" class="platform" x="210" y="308.6" width="17" height="240.4" rx="2.4"/>
+    <rect id="platform-5b" class="platform" x="210" y="106" width="17" height="201.4" rx="2.4"/>
+    <rect id="platform-7a" class="platform" x="229" y="308.6" width="17" height="240.4" rx="2.4"/>
+    <rect id="platform-7b" class="platform" x="229" y="106" width="17" height="201.4" rx="2.4"/>
+    <rect id="platform-8a" class="platform" x="268" y="308.6" width="14" height="215.4" rx="2.4"/>
+    <rect id="platform-8b" class="platform" x="268" y="104" width="14" height="203.4" rx="2.4"/>
+    <rect id="platform-9a" class="platform" x="284" y="308.6" width="14" height="215.4" rx="2.4"/>
+    <rect id="platform-9b" class="platform" x="284" y="104" width="14" height="203.4" rx="2.4"/>
+    <rect id="platform-11a" class="platform" x="330" y="308.6" width="14" height="202.4" rx="2.4"/>
+    <rect id="platform-11b" class="platform" x="330" y="57" width="14" height="250.4" rx="2.4"/>
+    <rect id="platform-12a" class="platform" x="346" y="308.6" width="14" height="202.4" rx="2.4"/>
+    <rect id="platform-12b" class="platform" x="346" y="57" width="14" height="250.4" rx="2.4"/>
+    <rect id="platform-14a" class="platform" x="382" y="308.6" width="15" height="202.4" rx="2.4"/>
+    <rect id="platform-14b" class="platform" x="382" y="63" width="15" height="244.4" rx="2.4"/>
+    <rect id="platform-15a" class="platform" x="399" y="308.6" width="15" height="202.4" rx="2.4"/>
+    <rect id="platform-15b" class="platform" x="399" y="63" width="15" height="244.4" rx="2.4"/>
+    <rect id="platform-18a" class="platform" x="436" y="308.6" width="15" height="220.4" rx="2.4"/>
+    <rect id="platform-18b" class="platform" x="436" y="69" width="15" height="238.4" rx="2.4"/>
+    <rect id="platform-19a" class="platform" x="453" y="308.6" width="15" height="220.4" rx="2.4"/>
+    <rect id="platform-19b" class="platform" x="453" y="69" width="15" height="238.4" rx="2.4"/>
+    <rect id="platform-20a" class="platform" x="490" y="308.6" width="14" height="110.4" rx="2.4"/>
+    <rect id="platform-20b" class="platform" x="490" y="65" width="14" height="242.4" rx="2.4"/>
+    <rect id="platform-21a" class="platform" x="506" y="308.6" width="14" height="110.4" rx="2.4"/>
+    <rect id="platform-21b" class="platform" x="506" y="65" width="14" height="242.4" rx="2.4"/>
+  </g>
+  <g id="layer-buildings">
+    <polygon class="passage passage--above" points="80,263 556,263 556,337 532,337 532,354 104,354 104,337 80,337"/>
+    <rect class="passage passage--above" x="66" y="284" width="15" height="46" rx="1.5"/>
+    <polygon class="passage passage--above" points="566,102.6 457,102.5 441,103.1 420,105.7 400,110.4 377,115.8 362,121.7 333,125.5 302,127.6 266,128.1 230,127.5 192,126.3 166,125.4 166,135.4 192,136.3 230,137.5 266,138.1 302,137.6 333,135.5 362,131.7 377,125.8 400,120.4 420,115.7 441,113.1 457,112.5 566,112.6"/>
+    <rect class="stairs" x="177" y="356" width="8" height="18" rx="1"/>
+    <path class="stairs-line" d="M177 359 H185 M177 362 H185 M177 365 H185 M177 368 H185 M177 371 H185"/>
+    <rect class="stairs" x="224" y="356" width="8" height="18" rx="1"/>
+    <path class="stairs-line" d="M224 359 H232 M224 362 H232 M224 365 H232 M224 368 H232 M224 371 H232"/>
+    <rect class="stairs" x="224" y="244" width="8" height="19" rx="1"/>
+    <path class="stairs-line" d="M224 247 H232 M224 250 H232 M224 253 H232 M224 256 H232 M224 259 H232"/>
+    <rect class="stairs" x="279" y="356" width="8" height="18" rx="1"/>
+    <path class="stairs-line" d="M279 359 H287 M279 362 H287 M279 365 H287 M279 368 H287 M279 371 H287"/>
+    <rect class="stairs" x="279" y="244" width="8" height="19" rx="1"/>
+    <path class="stairs-line" d="M279 247 H287 M279 250 H287 M279 253 H287 M279 256 H287 M279 259 H287"/>
+    <rect class="stairs" x="341" y="356" width="8" height="18" rx="1"/>
+    <path class="stairs-line" d="M341 359 H349 M341 362 H349 M341 365 H349 M341 368 H349 M341 371 H349"/>
+    <rect class="stairs" x="341" y="244" width="8" height="19" rx="1"/>
+    <path class="stairs-line" d="M341 247 H349 M341 250 H349 M341 253 H349 M341 256 H349 M341 259 H349"/>
+    <rect class="stairs" x="394" y="356" width="8" height="18" rx="1"/>
+    <path class="stairs-line" d="M394 359 H402 M394 362 H402 M394 365 H402 M394 368 H402 M394 371 H402"/>
+    <rect class="stairs" x="394" y="244" width="8" height="19" rx="1"/>
+    <path class="stairs-line" d="M394 247 H402 M394 250 H402 M394 253 H402 M394 256 H402 M394 259 H402"/>
+    <rect class="stairs" x="448" y="356" width="8" height="18" rx="1"/>
+    <path class="stairs-line" d="M448 359 H456 M448 362 H456 M448 365 H456 M448 368 H456 M448 371 H456"/>
+    <rect class="stairs" x="448" y="244" width="8" height="19" rx="1"/>
+    <path class="stairs-line" d="M448 247 H456 M448 250 H456 M448 253 H456 M448 256 H456 M448 259 H456"/>
+    <rect class="stairs" x="501" y="356" width="8" height="18" rx="1"/>
+    <path class="stairs-line" d="M501 359 H509 M501 362 H509 M501 365 H509 M501 368 H509 M501 371 H509"/>
+    <rect class="stairs" x="501" y="244" width="8" height="19" rx="1"/>
+    <path class="stairs-line" d="M501 247 H509 M501 250 H509 M501 253 H509 M501 256 H509 M501 259 H509"/>
+  </g>
+  <g id="layer-labels">
+    <text class="label" x="124" y="297" font-size="6" text-anchor="middle" data-en="Utrecht Centraal">Utrecht Centraal</text>
+    <text class="label label--muted" x="124" y="305" font-size="3.6" text-anchor="middle" data-en="station hall">Stationshal</text>
+    <text class="label" x="48" y="373" font-size="5" text-anchor="middle" transform="rotate(-90 48 373)" data-en="Hoog Catharijne">Hoog Catharijne</text>
+    <text class="label label--muted" x="86" y="490" font-size="3.4" text-anchor="middle" transform="rotate(-90 86 490)" data-en="Stationsplein Oost">Stationsplein Oost</text>
+    <text class="label label--water" x="17.6" y="420" font-size="3.6" text-anchor="middle" transform="rotate(-90 17.6 420)" data-en="Catharijnesingel">Catharijnesingel</text>
+    <text class="label label--muted" x="134" y="132" font-size="3.4" text-anchor="middle" data-en="Moreelsebrug">Moreelsebrug</text>
+    <text class="label" x="587" y="358" font-size="4.4" text-anchor="middle" transform="rotate(-90 587 358)" data-en="Jaarbeursplein">Jaarbeursplein</text>
+  </g>
+  <g id="layer-nodes">
+    <circle id="node-p1a" cx="113" cy="560" r="1"/>
+    <circle id="node-p1b" cx="113" cy="436" r="1"/>
+    <circle id="node-p2a" cx="129" cy="560" r="1"/>
+    <circle id="node-p2b" cx="129" cy="436" r="1"/>
+    <circle id="node-p3a" cx="165" cy="573.5" r="1"/>
+    <circle id="node-p3b" cx="165" cy="440.5" r="1"/>
+    <circle id="node-p4a" cx="181" cy="569" r="1"/>
+    <circle id="node-p4b" cx="181" cy="427" r="1"/>
+    <circle id="node-p5a" cx="218.5" cy="429" r="1"/>
+    <circle id="node-p5b" cx="218.5" cy="206.5" r="1"/>
+    <circle id="node-p7a" cx="237.5" cy="429" r="1"/>
+    <circle id="node-p7b" cx="237.5" cy="206.5" r="1"/>
+    <circle id="node-p8a" cx="275" cy="416.5" r="1"/>
+    <circle id="node-p8b" cx="275" cy="205.5" r="1"/>
+    <circle id="node-p9a" cx="291" cy="416.5" r="1"/>
+    <circle id="node-p9b" cx="291" cy="205.5" r="1"/>
+    <circle id="node-p11a" cx="337" cy="410" r="1"/>
+    <circle id="node-p11b" cx="337" cy="182" r="1"/>
+    <circle id="node-p12a" cx="353" cy="410" r="1"/>
+    <circle id="node-p12b" cx="353" cy="182" r="1"/>
+    <circle id="node-p14a" cx="389.5" cy="410" r="1"/>
+    <circle id="node-p14b" cx="389.5" cy="185" r="1"/>
+    <circle id="node-p15a" cx="406.5" cy="410" r="1"/>
+    <circle id="node-p15b" cx="406.5" cy="185" r="1"/>
+    <circle id="node-p18a" cx="443.5" cy="419" r="1"/>
+    <circle id="node-p18b" cx="443.5" cy="188" r="1"/>
+    <circle id="node-p19a" cx="460.5" cy="419" r="1"/>
+    <circle id="node-p19b" cx="460.5" cy="188" r="1"/>
+    <circle id="node-p20a" cx="497" cy="364" r="1"/>
+    <circle id="node-p20b" cx="497" cy="186" r="1"/>
+    <circle id="node-p21a" cx="513" cy="364" r="1"/>
+    <circle id="node-p21b" cx="513" cy="186" r="1"/>
+    <circle id="node-kp1" cx="130" cy="379" r="1"/>
+    <circle id="node-kp" cx="147" cy="379" r="1"/>
+    <circle id="node-es-k" cx="181" cy="368" r="1"/>
+    <circle id="node-hall-k" cx="181" cy="346" r="1"/>
+    <circle id="node-es5-n" cx="228" cy="368" r="1"/>
+    <circle id="node-es5-s" cx="228" cy="254" r="1"/>
+    <circle id="node-hall5-n" cx="228" cy="346" r="1"/>
+    <circle id="node-hall5-s" cx="228" cy="272" r="1"/>
+    <circle id="node-es8-n" cx="283" cy="368" r="1"/>
+    <circle id="node-es8-s" cx="283" cy="254" r="1"/>
+    <circle id="node-hall8-n" cx="283" cy="346" r="1"/>
+    <circle id="node-hall8-s" cx="283" cy="272" r="1"/>
+    <circle id="node-es11-n" cx="345" cy="368" r="1"/>
+    <circle id="node-es11-s" cx="345" cy="254" r="1"/>
+    <circle id="node-hall11-n" cx="345" cy="346" r="1"/>
+    <circle id="node-hall11-s" cx="345" cy="272" r="1"/>
+    <circle id="node-es14-n" cx="398" cy="368" r="1"/>
+    <circle id="node-es14-s" cx="398" cy="254" r="1"/>
+    <circle id="node-hall14-n" cx="398" cy="346" r="1"/>
+    <circle id="node-hall14-s" cx="398" cy="272" r="1"/>
+    <circle id="node-es18-n" cx="452" cy="368" r="1"/>
+    <circle id="node-es18-s" cx="452" cy="254" r="1"/>
+    <circle id="node-hall18-n" cx="452" cy="346" r="1"/>
+    <circle id="node-hall18-s" cx="452" cy="272" r="1"/>
+    <circle id="node-es20-n" cx="505" cy="368" r="1"/>
+    <circle id="node-es20-s" cx="505" cy="254" r="1"/>
+    <circle id="node-hall20-n" cx="505" cy="346" r="1"/>
+    <circle id="node-hall20-s" cx="505" cy="272" r="1"/>
+  </g>
+</svg>
