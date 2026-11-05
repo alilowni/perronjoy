@@ -1,0 +1,7 @@
+{
+  "id": "utrecht-centraal",
+  "name": "Utrecht Centraal",
+  "city": "Utrecht",
+  "status": "placeholder",
+  "_comment": "Placeholder. The station builder replaces this file with the full station.json and adds scene.svg and NOTES.md. See SPEC.md."
+}
