@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Perronjoy scene template. A small fictional station with 4 platforms.
+  Copy this file to start a real station. Rules are in SPEC.md.
+
+  Coordinates: 1 unit ≈ 1 metre along the tracks. Tracks run from the TOP of
+  the scene to the BOTTOM. Platform numbers increase from left to right.
+  Layers must keep these ids and this order. Do not put transform="" on
+  layers, platform rects or node circles.
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 420" data-perronjoy-scene="1">
+  <title>Voorbeeldstation</title>
+
+  <!-- 1. Ground and surroundings -->
+  <g id="layer-ground">
+    <rect class="ground" x="0" y="0" width="200" height="420"/>
+    <rect class="block" x="156" y="30" width="40" height="70" rx="4"/>
+    <rect class="block" x="156" y="300" width="40" height="90" rx="4"/>
+    <rect class="block" x="4" y="20" width="30" height="80" rx="4"/>
+    <rect class="block" x="4" y="320" width="30" height="70" rx="4"/>
+    <circle class="tree" cx="150" cy="150" r="5"/>
+    <circle class="tree" cx="158" cy="162" r="4"/>
+    <circle class="tree" cx="150" cy="262" r="5"/>
+    <circle class="tree" cx="22" cy="130" r="4"/>
+    <circle class="tree" cx="14" cy="295" r="4"/>
+  </g>
+
+  <!-- 2. Passages below the platforms (tunnels) -->
+  <g id="layer-passages">
+    <rect class="passage" x="10" y="204" width="150" height="12" rx="2"/>
+  </g>
+
+  <!-- 3. Track centrelines. Invisible. The shell draws the ballast and rails.
+       One path per platform number, id="track-N", drawn top to bottom. -->
+  <g id="layer-tracks">
+    <path id="track-1" d="M 61 0 L 61 420"/>
+    <path id="track-2" d="M 71 0 L 71 420"/>
+    <path id="track-3" d="M 113 0 L 113 420"/>
+    <path id="track-4" d="M 123 0 L 123 420"/>
+  </g>
+
+  <!-- 4. Platform surfaces. One rect per platform number, id="platform-N".
+       An island platform is two rects that touch (2 and 3 here). -->
+  <g id="layer-platforms">
+    <rect id="platform-1" class="platform" x="40" y="60" width="16" height="300" rx="3"/>
+    <rect id="platform-2" class="platform" x="76" y="60" width="16" height="300" rx="3"/>
+    <rect id="platform-3" class="platform" x="92" y="60" width="16" height="300" rx="3"/>
+    <rect id="platform-4" class="platform" x="128" y="60" width="16" height="300" rx="3"/>
+  </g>
+
+  <!-- 5. Buildings, stairs, bridges above the platforms -->
+  <g id="layer-buildings">
+    <rect class="building" x="2" y="150" width="34" height="120" rx="3"/>
+    <!-- stairs down into the tunnel: a light block with white steps -->
+    <g class="stairs-group">
+      <rect class="stairs" x="45" y="188" width="6" height="16" rx="1"/>
+      <path class="stairs-line" d="M45 191 H51 M45 194 H51 M45 197 H51 M45 200 H51"/>
+      <rect class="stairs" x="89" y="188" width="6" height="16" rx="1"/>
+      <path class="stairs-line" d="M89 191 H95 M89 194 H95 M89 197 H95 M89 200 H95"/>
+      <rect class="stairs" x="133" y="188" width="6" height="16" rx="1"/>
+      <path class="stairs-line" d="M133 191 H139 M133 194 H139 M133 197 H139 M133 200 H139"/>
+    </g>
+  </g>
+
+  <!-- 6. Text labels. Font sizes in scene units. -->
+  <g id="layer-labels">
+    <text class="label" x="19" y="205" font-size="5" text-anchor="middle">Voorbeeld</text>
+    <text class="label label--muted" x="19" y="211" font-size="3.4" text-anchor="middle">stationshal</text>
+    <text class="label label--muted" x="85" y="213" font-size="3" text-anchor="middle">tunnel</text>
+  </g>
+
+  <!-- 7. Walking-graph nodes. Invisible circles, id="node-ID".
+       Platform nodes: id="node-pN" or "node-pNa" / "node-pNb" when the platform has sections. -->
+  <g id="layer-nodes">
+    <circle id="node-p1a" cx="48" cy="120" r="1"/>
+    <circle id="node-p1b" cx="48" cy="250" r="1"/>
+    <circle id="node-p2" cx="84" cy="150" r="1"/>
+    <circle id="node-p3" cx="100" cy="150" r="1"/>
+    <circle id="node-p4" cx="136" cy="150" r="1"/>
+    <circle id="node-st1" cx="48" cy="196" r="1"/>
+    <circle id="node-st23" cx="92" cy="196" r="1"/>
+    <circle id="node-st4" cx="136" cy="196" r="1"/>
+    <circle id="node-t1" cx="48" cy="210" r="1"/>
+    <circle id="node-t23" cx="92" cy="210" r="1"/>
+    <circle id="node-t4" cx="136" cy="210" r="1"/>
+    <circle id="node-hall" cx="22" cy="210" r="1"/>
+  </g>
+</svg>

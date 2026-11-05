@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="nl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Perronjoy</title>
+  <meta name="description" content="Perronjoy shows where you arrive at a Dutch station and how to walk to your next train.">
+  <meta name="color-scheme" content="light">
+  <meta name="theme-color" content="#f2f4f7">
+  <link rel="stylesheet" href="css/site.css">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='9' fill='%234fae62'/%3E%3Crect x='11' y='6' width='10' height='20' rx='3' fill='%23fff'/%3E%3C/svg%3E">
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="./index.html"><span class="dot"></span><span data-i18n="app.name">Perronjoy</span></a>
+    <div class="title"></div>
+    <button class="lang-switch" type="button" data-i18n-label="nav.lang"><span data-lang="nl">NL</span> · <span data-lang="en">EN</span></button>
+  </header>
+
+  <main>
+    <section class="hero">
+      <h1 data-i18n="app.choose">Kies een station</h1>
+      <p data-i18n="app.tagline">Zie waar je aankomt en hoe je naar je volgende trein loopt.</p>
+    </section>
+    <section class="station-grid" id="station-grid" aria-live="polite"></section>
+  </main>
+
+  <footer class="footer">
+    <p><strong data-i18n="app.name">Perronjoy</strong></p>
+    <p data-i18n="footer.unofficial">Perronjoy is geen officiële site van NS, ProRail of een stationsbeheerder.</p>
+    <p data-i18n="footer.sample">Alle tijden zijn voorbeelddata.</p>
+  </footer>
+
+  <script src="js/i18n.js"></script>
+  <script src="js/site.js"></script>
+</body>
+</html>

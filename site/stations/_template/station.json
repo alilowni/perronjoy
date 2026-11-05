@@ -1,0 +1,123 @@
+{
+  "id": "_template",
+  "name": "Voorbeeldstation",
+  "city": "Voorbeeld",
+  "status": "ready",
+  "_comment": "Fictional example station. Copy this file to start a real station. Every field is explained in SPEC.md.",
+
+  "orientation": { "north_deg": 0 },
+
+  "ends": {
+    "top": { "towards": { "nl": "noorden", "en": "the north" } },
+    "bottom": { "towards": { "nl": "zuiden", "en": "the south" } }
+  },
+
+  "levels": [
+    { "id": "platform", "label": { "nl": "perron", "en": "platform" }, "position": 0 },
+    { "id": "tunnel", "label": { "nl": "tunnel", "en": "tunnel" }, "position": -1 }
+  ],
+
+  "platforms": [
+    { "id": "1", "sections": ["a", "b"] },
+    { "id": "2" },
+    { "id": "3" },
+    { "id": "4" }
+  ],
+
+  "nodes": [
+    { "id": "p1a", "kind": "platform", "level": "platform", "platform": "1", "section": "a" },
+    { "id": "p1b", "kind": "platform", "level": "platform", "platform": "1", "section": "b" },
+    { "id": "p2", "kind": "platform", "level": "platform", "platform": "2" },
+    { "id": "p3", "kind": "platform", "level": "platform", "platform": "3" },
+    { "id": "p4", "kind": "platform", "level": "platform", "platform": "4" },
+    { "id": "st1", "kind": "stairs", "level": "platform", "label": { "nl": "de trap in het midden van spoor 1", "en": "the stairs in the middle of platform 1" }, "short": { "nl": "spoor 1", "en": "platform 1" } },
+    { "id": "st23", "kind": "stairs", "level": "platform", "label": { "nl": "de trap in het midden van spoor 2/3", "en": "the stairs in the middle of platform 2/3" }, "short": { "nl": "spoor 2/3", "en": "platform 2/3" } },
+    { "id": "st4", "kind": "stairs", "level": "platform", "label": { "nl": "de trap in het midden van spoor 4", "en": "the stairs in the middle of platform 4" }, "short": { "nl": "spoor 4", "en": "platform 4" } },
+    { "id": "t1", "kind": "passage", "level": "tunnel", "label": { "nl": "de tunnel", "en": "the tunnel" } },
+    { "id": "t23", "kind": "passage", "level": "tunnel", "label": { "nl": "de tunnel", "en": "the tunnel" } },
+    { "id": "t4", "kind": "passage", "level": "tunnel", "label": { "nl": "de tunnel", "en": "the tunnel" } },
+    { "id": "hall", "kind": "hall", "level": "tunnel", "label": { "nl": "de stationshal", "en": "the station hall" } }
+  ],
+
+  "edges": [
+    { "from": "p1a", "to": "st1", "kind": "walk", "seconds": 60 },
+    { "from": "p1b", "to": "st1", "kind": "walk", "seconds": 45 },
+    { "from": "p2", "to": "st23", "kind": "walk", "seconds": 40 },
+    { "from": "p3", "to": "st23", "kind": "walk", "seconds": 40 },
+    { "from": "p4", "to": "st4", "kind": "walk", "seconds": 40 },
+    { "from": "st1", "to": "t1", "kind": "stairs", "seconds": 20 },
+    { "from": "st23", "to": "t23", "kind": "stairs", "seconds": 20 },
+    { "from": "st4", "to": "t4", "kind": "stairs", "seconds": 20 },
+    { "from": "t1", "to": "t23", "kind": "walk", "seconds": 45 },
+    { "from": "t23", "to": "t4", "kind": "walk", "seconds": 45 },
+    { "from": "t1", "to": "hall", "kind": "walk", "seconds": 30 }
+  ],
+
+  "arrivals": [
+    {
+      "id": "arr-ic-1234",
+      "train": { "type": "Intercity", "number": "1234" },
+      "origin": "Zwolle",
+      "platform": "1",
+      "section": "b",
+      "from_end": "top",
+      "in_min": 0,
+      "length_m": 160
+    }
+  ],
+
+  "departures": [
+    {
+      "id": "dep-ic-3500",
+      "train": { "type": "Intercity", "number": "3500" },
+      "destination": "Eindhoven Centraal",
+      "platform": "2",
+      "section": null,
+      "to_end": "bottom",
+      "in_min": 6,
+      "status": "on_time",
+      "delay_min": 0,
+      "length_m": 160
+    },
+    {
+      "id": "dep-spr-4821",
+      "train": { "type": "Sprinter", "number": "4821" },
+      "destination": "Leiden Centraal",
+      "platform": "3",
+      "section": null,
+      "to_end": "top",
+      "in_min": 9,
+      "status": "on_time",
+      "delay_min": 0,
+      "length_m": 100
+    },
+    {
+      "id": "dep-ic-700",
+      "train": { "type": "Intercity", "number": "700" },
+      "destination": "Groningen",
+      "platform": "4",
+      "section": null,
+      "to_end": "top",
+      "in_min": 11,
+      "status": "delayed",
+      "delay_min": 3,
+      "length_m": 200
+    },
+    {
+      "id": "dep-spr-5600",
+      "train": { "type": "Sprinter", "number": "5600" },
+      "destination": "Amersfoort Centraal",
+      "platform": "1",
+      "section": "a",
+      "to_end": "top",
+      "in_min": 18,
+      "status": "on_time",
+      "delay_min": 0,
+      "length_m": 70
+    }
+  ],
+
+  "sources": [
+    "Fictional station. No sources."
+  ]
+}
