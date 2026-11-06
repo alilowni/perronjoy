@@ -91,7 +91,7 @@
     {"id":"pa15o","kind":"passage","level":"passage","label":{"nl":"de passage","en":"the passage"}},
     {"id":"hall","kind":"hall","level":"passage","label":{"nl":"de stationshal","en":"the station hall"}},
     {"id":"north","kind":"exit","level":"passage","label":{"nl":"de uitgang Proveniersplein","en":"the Proveniersplein exit"}},
-    {"id":"es-wc","kind":"escalator","level":"passage","label":{"nl":"de roltrap naar de eerste verdieping","en":"the escalator to the first floor"}},
+    {"id":"es-wc","kind":"escalator","level":"passage","label":{"nl":"de roltrap naar de eerste verdieping","en":"the escalator to the first floor"},"short":{"nl":"de stationshal","en":"the station hall"}},
     {"id":"wc-hall","kind":"toilet","level":"hall-1","label":{"nl":"de toiletten op de eerste verdieping van de stationshal, aan de oostkant","en":"the toilets on the first floor of the station hall, at the east end"},"paid":true,"accessible":true,"outside_gates":false}
   ],
 

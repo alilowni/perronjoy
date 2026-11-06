@@ -52,7 +52,7 @@
     { "from": "t1", "to": "t23", "kind": "walk", "seconds": 45 },
     { "from": "t23", "to": "t4", "kind": "walk", "seconds": 45 },
     { "from": "t1", "to": "hall", "kind": "walk", "seconds": 30 },
-    { "from": "hall", "to": "wc-hall", "kind": "walk", "seconds": 30 }
+    { "from": "t1", "to": "wc-hall", "kind": "walk", "seconds": 40 }
   ],
 
   "arrivals": [

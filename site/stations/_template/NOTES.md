@@ -49,8 +49,10 @@ One line per public toilet: id, where, level, source, `paid`, `accessible`,
 ## Decisions
 
 - The stairs sit in the middle of each platform because the tunnel is there.
-- The toilet node sits in the hall, clear of the hall labels and the badges;
-  the shell draws its WC marker.
+- The toilet node sits in the lower part of the hall, clear of the hall
+  labels and the badges, and is joined to the tunnel where it enters the hall,
+  so the route line does not cross the station name. The shell draws its WC
+  marker.
 
 ## VERIFY
 

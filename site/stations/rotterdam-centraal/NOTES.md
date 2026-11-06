@@ -131,7 +131,8 @@ left).
   (104, 349). Reached by the escalator `es-wc` (OSM, w ≈ +47) from the hall
   floor: 34 s from the east side of the passage, 48 s from the middle of the
   hall, 30 s up. New level `hall-1` (position 0: the first floor is at
-  platform height). Source 16, 17. paid: yes (OSM `fee=yes`; NS: SANIFAIR,
+  platform height). `es-wc` has the `short` label "de stationshal", so the
+  way back reads "Neem de roltrap omlaag naar de stationshal". Source 16, 17. paid: yes (OSM `fee=yes`; NS: SANIFAIR,
   €1.10); accessible: yes (OSM `wheelchair=yes`); outside_gates: no — the only
   turnstile in OSM stands about 17 m further towards the Stationsplein, on the
   hall floor. VERIFY the gate side.
