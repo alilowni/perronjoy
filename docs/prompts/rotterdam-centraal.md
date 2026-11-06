@@ -59,11 +59,13 @@ These rules are the same in all four prompts. Do not bend them.
 Do not touch anything else: not `site/*.html`, `site/css/`, `site/js/`,
 `site/stations/index.json`, `site/stations/_template/`, `tools/`, `docs/`,
 `README.md`, `AGENTS.md`, `CLAUDE.md`, `package.json`, `.github/`, or another
-station's folder. Do not add packages, build steps, fonts, images or styles.
+station's folder. The one exception is `ISSUES.md`: you may add lines to it.
+Do not add packages, build steps, fonts, images or styles.
 If the shell has a bug or misses something you need, write it in `NOTES.md`
-under **Shell issues** and in your final message, then work around it inside
-your folder. Never fix the shell on your branch: four branches changing the
-shell at once cannot merge.
+under **Shell issues**, add one line at the end of `ISSUES.md`
+(`- [shell] problem`), and mention it in your final message; then work around
+it inside your folder. Never fix the shell on your branch: four branches
+changing the shell at once cannot merge.
 
 **Truth.** The map is schematic but true ([SPEC 9](../SPEC.md#9-realism-what-must-be-true)).
 Platform numbers, their order, islands, the position and level of passages
