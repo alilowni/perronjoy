@@ -150,7 +150,9 @@ You draw only the station itself and its surroundings.
 Colours come only from `site/css/site.css`, through these classes. This is
 what makes the dark theme work. **Never** put a colour in the SVG: no
 `fill="#…"`, no `stroke="red"`, no `style="fill:…"`, no `<style>`. The checker
-rejects them. `fill="none"` is allowed.
+rejects them. `fill="none"` is allowed, but it has no effect on a shape
+with one of these classes: the class sets the fill and wins over the
+attribute, so `fill="none"` cannot turn a classed shape into an outline.
 
 | class | use |
 |---|---|
