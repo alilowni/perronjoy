@@ -485,10 +485,16 @@
   }
   function select(kind, rec) {
     if (!rec) return;
-    if (kind === 'from') S.from = rec; else S.to = rec;
+    if (kind === 'from') {
+      // The map shows the train you arrive with: the old arrival leaves the map, the new one comes in.
+      const old = S.from && S.trains[S.from.id];
+      if (old && old.kind === 'arr') { if (old.cancel) old.cancel(); old.g.remove(); delete S.trains[S.from.id]; }
+      S.from = rec;
+    } else S.to = rec;
     computeRoute();
     updateUrl();
     renderAll({ animate: true });
+    if (kind === 'from') playArrival();
     if (S.mode === 'map') frame('transfer');
   }
 
