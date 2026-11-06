@@ -286,6 +286,7 @@
       const group = svgEl('g', { class: 'shadows', 'aria-hidden': 'true' });
       $$('.block, .building, .tree, .platform', layer).forEach((src) => {
         if (src.tagName.toLowerCase() === 'g') return;
+        if (/^platform-\d+[a-z]$/.test(src.id)) return; // a section rect lies on its platform, which already casts the shadow
         const cls = src.classList;
         const off = cls.contains('block--tall') ? SHADOW_OFFSETS['block--tall']
           : cls.contains('building') ? SHADOW_OFFSETS.building
