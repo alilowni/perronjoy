@@ -74,7 +74,24 @@ window.PerronjoyI18n = (function () {
       'error.load': 'De stationsgegevens konden niet worden geladen.',
       'train.from': 'uit {x}',
       'train.to': 'naar {x}',
-      'train.unknown': 'Trein'
+      'train.unknown': 'Trein',
+      'wc.toggle': 'WC onderweg',
+      'wc.marker': 'WC',
+      'wc.stop': 'Toiletbezoek, ongeveer {m} min',
+      'wc.paid': 'Betaald toilet',
+      'wc.free': 'Gratis',
+      'wc.paidShort': 'Betaald',
+      'wc.accessible': 'Rolstoeltoilet',
+      'wc.outside': 'Buiten de poortjes: uit- en weer inchecken',
+      'wc.outsideShort': 'Buiten de poortjes',
+      'wc.walk': 'Looptijd ongeveer {min} min + {stop} min toilet',
+      'wc.walkOnly': 'Looptijd naar het toilet ongeveer {min} min',
+      'wc.none': 'Geen bereikbaar toilet gevonden. De route gaat direct naar je trein.',
+      'wc.noneOnly': 'Geen bereikbaar toilet gevonden op dit station.',
+      'wc.list': 'Toiletten',
+      'wc.listWalk': '{min} min lopen',
+      'wc.listFrom': 'Looptijd vanaf spoor {pf}',
+      'wc.listEmpty': 'Er staan geen toiletten in de kaart van dit station.'
     },
     en: {
       'app.name': 'Perronjoy',
@@ -143,7 +160,24 @@ window.PerronjoyI18n = (function () {
       'error.load': 'The station data could not be loaded.',
       'train.from': 'from {x}',
       'train.to': 'to {x}',
-      'train.unknown': 'Train'
+      'train.unknown': 'Train',
+      'wc.toggle': 'Toilet on the way',
+      'wc.marker': 'WC',
+      'wc.stop': 'Toilet stop, about {m} min',
+      'wc.paid': 'Paid toilet',
+      'wc.free': 'Free',
+      'wc.paidShort': 'Paid',
+      'wc.accessible': 'Wheelchair toilet',
+      'wc.outside': 'Outside the gates: check out and in again',
+      'wc.outsideShort': 'Outside the gates',
+      'wc.walk': 'About {min} min walking + {stop} min toilet',
+      'wc.walkOnly': 'About {min} min walking to the toilet',
+      'wc.none': 'No reachable toilet found. The route goes straight to your train.',
+      'wc.noneOnly': 'No reachable toilet found at this station.',
+      'wc.list': 'Toilets',
+      'wc.listWalk': '{min} min walk',
+      'wc.listFrom': 'Walking time from platform {pf}',
+      'wc.listEmpty': 'There are no toilets on the map of this station.'
     }
   };
 

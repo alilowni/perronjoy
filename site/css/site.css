@@ -69,6 +69,11 @@
   --badge: #2b3440;
   --route: #24303c;
   --route-casing: #ffffff;
+  --wc-bg: #ffffff;          /* WC marker: a quiet tile, dark when it is on your route */
+  --wc-edge: #8b96a3;
+  --wc-text: #3a4552;
+  --wc-active-bg: #3a4552;
+  --wc-active-text: #ffffff;
 
   /* Trains: original Perronjoy accents, not a copy of any railway brand */
   --train-body: #fbfcfd;
@@ -154,6 +159,11 @@
   --badge: #3a4553;
   --route: #eef2f6;
   --route-casing: #0e1318;
+  --wc-bg: #1f2730;
+  --wc-edge: #7d8895;
+  --wc-text: #d7dee6;
+  --wc-active-bg: #d7dee6;
+  --wc-active-text: #121820;
 
   --train-body: #e6ebf0;
   --train-edge: #6f7a86;
@@ -345,6 +355,13 @@ ol, ul { margin: 0; padding: 0; list-style: none; }
 .scene .badge-bg.is-from { fill: var(--from); }
 .scene .badge-text { fill: #ffffff; font-size: 5.4px; font-weight: 700; text-anchor: middle; }
 
+/* WC markers: above the scene and the badges, below the route (SPEC 7, Toilets). */
+.scene .wc-marker { pointer-events: none; }
+.scene .wc-bg { fill: var(--wc-bg); stroke: var(--wc-edge); stroke-width: 0.45; }
+.scene .wc-text { fill: var(--wc-text); font-size: 3.1px; font-weight: 750; text-anchor: middle; letter-spacing: -0.03em; }
+.scene .wc-marker.is-active .wc-bg { fill: var(--wc-active-bg); stroke: var(--route-casing); stroke-width: 0.7; }
+.scene .wc-marker.is-active .wc-text { fill: var(--wc-active-text); }
+
 /* Route: the casing draws in, then the line, gaps and markers appear. */
 .scene .route-casing { fill: none; stroke: var(--route-casing); stroke-width: 3.6; stroke-linejoin: round; stroke-linecap: round; }
 .scene .route-line { fill: none; stroke: var(--route); stroke-width: 1.8; stroke-linejoin: round; stroke-linecap: round; }
@@ -357,6 +374,8 @@ ol, ul { margin: 0; padding: 0; list-style: none; }
 .scene .route-step-text { fill: var(--route-casing); font-size: 4px; font-weight: 700; text-anchor: middle; }
 .scene .route-start { fill: var(--from); stroke: var(--route-casing); stroke-width: 0.9; }
 .scene .route-end { fill: var(--yours); stroke: var(--route-casing); stroke-width: 0.9; }
+.scene .route-wc-bg { fill: var(--wc-active-bg); stroke: var(--route-casing); stroke-width: 0.8; }
+.scene .route-wc-text { fill: var(--wc-active-text); font-size: 3.1px; font-weight: 750; text-anchor: middle; letter-spacing: -0.03em; }
 
 /* Trains */
 .scene .train-car { fill: var(--train-body); stroke: var(--train-edge); stroke-width: 0.45; }
@@ -375,6 +394,15 @@ ol, ul { margin: 0; padding: 0; list-style: none; }
   width: 100%; padding: 10px 12px; border-radius: var(--radius-sm);
   border: 1px solid var(--line); background: var(--surface-2); font: inherit; color: var(--text);
 }
+/* "WC onderweg": a switch. The knob moves with a transform only. */
+.wc-switch { display: flex; align-items: center; gap: 10px; margin: 2px 0 6px; padding: 6px 2px; cursor: pointer; font-size: 14px; font-weight: 600; -webkit-tap-highlight-color: transparent; }
+.wc-switch input { position: absolute; opacity: 0; width: 1px; height: 1px; margin: 0; pointer-events: none; }
+.wc-switch-track { position: relative; flex: 0 0 auto; width: 40px; height: 24px; border-radius: 999px; background: var(--surface-3); border: 1px solid var(--line); transition: background-color var(--fast) ease; }
+.wc-switch-track::after { content: ""; position: absolute; top: 2px; left: 2px; width: 18px; height: 18px; border-radius: 50%; background: var(--surface); box-shadow: var(--shadow-soft); transition: transform var(--medium) var(--ease-out); }
+.wc-switch input:checked + .wc-switch-track { background: var(--wc-active-bg); border-color: var(--wc-active-bg); }
+.wc-switch input:checked + .wc-switch-track::after { transform: translateX(16px); }
+.wc-switch input:focus-visible + .wc-switch-track { outline: 2px solid var(--yours); outline-offset: 2px; }
+.wc-chip { display: inline-grid; place-items: center; min-width: 24px; height: 20px; padding: 0 4px; border-radius: 6px; border: 1px solid var(--wc-edge); background: var(--wc-bg); color: var(--wc-text); font-size: 10px; font-weight: 750; letter-spacing: -0.02em; }
 .verdict {
   border-radius: var(--radius-sm); padding: 12px 14px; margin: 8px 0 12px;
   display: grid; gap: 2px; background: var(--surface-2);
@@ -395,6 +423,9 @@ ol, ul { margin: 0; padding: 0; list-style: none; }
 .steps li.is-start .n { background: var(--from); color: #fff; }
 .steps li.is-end .n { background: var(--yours); color: #fff; }
 .steps li small { display: block; color: var(--muted); font-size: 12px; }
+.steps li.is-wc .n { background: var(--wc-active-bg); color: var(--wc-active-text); font-size: 9px; letter-spacing: -0.02em; }
+.steps li.is-note .n { background: var(--tight-soft); color: var(--tight-text); }
+.steps li.is-note { color: var(--tight-text); }
 
 /* =====================================================================
    9. Departures and list mode
@@ -430,6 +461,17 @@ ol, ul { margin: 0; padding: 0; list-style: none; }
 .list-platform.is-yours h3 .num { background: var(--yours-soft); color: var(--yours-text); }
 .list-platform.is-from h3 .num { background: var(--from-soft); color: var(--from-text); }
 .list-platform .empty { font-size: 13px; color: var(--muted); }
+.list-wc h3 .num.wc-chip { min-width: 30px; height: 30px; border-radius: 9px; font-size: 11px; }
+.list-wc .empty { margin-bottom: 2px; }
+.wc-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 12px; align-items: center; padding: 10px 4px; border-top: 1px solid var(--line); }
+.wc-row:first-of-type { border-top: 0; }
+.wc-row .info { display: grid; gap: 5px; min-width: 0; }
+.wc-row .name { font-size: 14px; font-weight: 600; }
+.wc-row .flags { display: flex; flex-wrap: wrap; gap: 4px; }
+.wc-row .flag { font-size: 11px; font-weight: 600; color: var(--muted); background: var(--surface-2); border: 1px solid var(--line); border-radius: 999px; padding: 2px 8px; }
+.wc-row .when { font-size: 13px; font-weight: 600; color: var(--muted); white-space: nowrap; }
+.wc-row.is-yours .name, .wc-row.is-yours .when { color: var(--text); }
+.wc-row.is-yours .when::before { content: "● "; color: var(--wc-active-bg); }
 
 /* =====================================================================
    10. Home page

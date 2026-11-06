@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /* Perronjoy — screenshots of one page at phone and desktop size.
    Usage:  node tools/screenshot.mjs <station-id|index> [--from <key>] [--to <key>]
-                [--lang nl|en] [--theme light|dark] [--scale 1|2]
+                [--via wc] [--lang nl|en] [--theme light|dark] [--scale 1|2]
    Writes PNG files to tools/out/ (ignored by git). Animations are off. */
 
 import { mkdir } from 'node:fs/promises';
@@ -13,7 +13,7 @@ const OUT = join(ROOT, 'tools', 'out');
 const args = process.argv.slice(2);
 const id = args.find((a, i) => !a.startsWith('--') && !(i > 0 && args[i - 1].startsWith('--'))) || 'index';
 const opt = (name, def) => { const i = args.indexOf('--' + name); return i >= 0 ? args[i + 1] : def; };
-const lang = opt('lang', 'nl'), theme = opt('theme', 'light'), from = opt('from', ''), to = opt('to', ''), scale = Number(opt('scale', '1'));
+const lang = opt('lang', 'nl'), theme = opt('theme', 'light'), from = opt('from', ''), to = opt('to', ''), via = opt('via', ''), scale = Number(opt('scale', '1'));
 
 const server = await startServer();
 let browser;
@@ -24,14 +24,14 @@ await mkdir(OUT, { recursive: true });
 const query = new URLSearchParams({ motion: 'off', lang, theme });
 let url;
 if (id === 'index') url = server.base + 'index.html?' + query;
-else { query.set('station', id); if (from) query.set('from', from); if (to) query.set('to', to); url = server.base + 'station.html?' + query; }
+else { query.set('station', id); if (from) query.set('from', from); if (to) query.set('to', to); if (via) query.set('via', via); url = server.base + 'station.html?' + query; }
 
 const shots = [
   { name: 'phone', viewport: { width: 390, height: 844 }, full: true },
   { name: 'desktop', viewport: { width: 1280, height: 800 }, full: false },
   { name: 'desktop-wide', viewport: { width: 1440, height: 900 }, full: false }
 ];
-const tag = [id, lang, theme === 'dark' ? 'dark' : null, from || to ? `${from || 'x'}-${to || 'x'}` : null].filter(Boolean).join('-');
+const tag = [id, lang, theme === 'dark' ? 'dark' : null, from || to ? `${from || 'x'}-${to || 'x'}` : null, via ? 'via-' + via : null].filter(Boolean).join('-');
 const errors = [];
 for (const shot of shots) {
   const context = await browser.newContext({ viewport: shot.viewport, deviceScaleFactor: scale });
