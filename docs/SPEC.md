@@ -228,11 +228,11 @@ for a full example.
   "city": "Utrecht",
   "status": "ready",                 // "draft" while working, "ready" when done
 
-  "orientation": { "north_deg": 0 }, // see 5.1
+  "orientation": { "north_deg": 210 }, // see 5.1; Utrecht is drawn turned, north points down-left
 
   "ends": {                          // what lies beyond each end of the tracks
-    "top":    { "towards": { "nl": "Amsterdam, Amersfoort", "en": "Amsterdam, Amersfoort" } },
-    "bottom": { "towards": { "nl": "...", "en": "..." } }
+    "top":    { "towards": { "nl": "'s-Hertogenbosch, Arnhem", "en": "'s-Hertogenbosch, Arnhem" } },
+    "bottom": { "towards": { "nl": "Amsterdam, Gouda, Zwolle", "en": "Amsterdam, Gouda, Zwolle" } }
   },
 
   "levels": [                        // position: 0 = platform level, 1 = above, -1 = below
@@ -321,7 +321,7 @@ edges. The cost is seconds.
 "departures": [
   { "id": "dep-spr-5631", "train": { "type": "Sprinter", "number": "5631" },
     "destination": "Amersfoort Schothorst", "platform": "12", "section": "a",
-    "to_end": "top", "in_min": 6, "status": "on_time", "delay_min": 0, "length_m": 100 }
+    "to_end": "bottom", "in_min": 6, "status": "on_time", "delay_min": 0, "length_m": 100 }
 ]
 ```
 
