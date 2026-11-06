@@ -424,7 +424,7 @@
 
   function buildNorth() {
     const deg = Number((S.data.orientation || {}).north_deg) || 0;
-    $('#map').appendChild(el('div', { class: 'north', title: t('map.north'), 'aria-hidden': 'true' }, [
+    $('#map').appendChild(el('div', { class: 'north', title: t('map.north'), 'data-i18n-title': 'map.north', 'aria-hidden': 'true' }, [
       el('span', { class: 'arrow', text: '↑', style: 'transform: rotate(' + deg + 'deg)' }),
       el('span', { text: 'N' })
     ]));
