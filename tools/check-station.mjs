@@ -174,6 +174,14 @@ function checkStation(id) {
     if (!new RegExp(`<path[^>]*id="track-${p.id}"`).test(svg) && !new RegExp(`id="track-${p.id}"[^>]*>`).test(svg)) err(`scene.svg needs <path id="track-${p.id}">`);
     if (!new RegExp(`<rect[^>]*id="platform-${p.id}"`).test(svg) && !new RegExp(`id="platform-${p.id}"[^>]*/?>`).test(svg)) err(`scene.svg needs <rect id="platform-${p.id}" class="platform">`);
   });
+  // Tracks run from the top of the scene to the bottom (SPEC 5.1); a reversed path swaps the ends for every train on it.
+  for (const m of svg.matchAll(/<path([^>]*)>/g)) {
+    const tid = m[1].match(/\sid="(track-[^"]+)"/), d = m[1].match(/\sd="([^"]+)"/);
+    if (!tid || !d) continue;
+    const ends = pathEnds(d[1]);
+    if (!ends) warn(`${tid[1]}: the checker cannot read its path; make sure it runs from the top of the scene to the bottom (SPEC 5.1)`);
+    else if (ends.last.y <= ends.first.y) err(`${tid[1]} runs from bottom to top; draw it from the top of the scene to the bottom, or its trains enter and leave at the wrong end (SPEC 5.1)`);
+  }
   const circles = {};
   for (const m of svg.matchAll(/<circle([^>]*)\/?>/g)) {
     const attrs = m[1];
@@ -243,4 +251,27 @@ function checkStation(id) {
 function levelPos(levels, levelId) {
   const l = levels.find((x) => x.id === (levelId || 'platform'));
   return l ? Number(l.position) : 0;
+}
+
+/* First and last point of an SVG path (absolute and relative commands). Returns null if it cannot read it. */
+function pathEnds(d) {
+  const ARGS = { m: 2, l: 2, h: 1, v: 1, c: 6, s: 4, q: 4, t: 2, a: 7, z: 0 };
+  const tokens = d.match(/[a-df-z]|[-+]?(?:\d+\.?\d*|\.\d+)(?:e[-+]?\d+)?/gi) || [];
+  let x = 0, y = 0, sx = 0, sy = 0, first = null, cmd = null;
+  for (let i = 0; i < tokens.length;) {
+    if (/^[a-z]$/i.test(tokens[i])) {
+      cmd = tokens[i++];
+      if (cmd.toLowerCase() === 'z') { x = sx; y = sy; cmd = null; continue; }
+    } else if (!cmd) return null;
+    const c = cmd.toLowerCase(), rel = cmd === c, n = ARGS[c];
+    if (!n) return null;
+    const v = tokens.slice(i, i + n).map(Number);
+    if (v.length < n || v.some(Number.isNaN)) return null;
+    i += n;
+    if (c === 'h') x = rel ? x + v[0] : v[0];
+    else if (c === 'v') y = rel ? y + v[0] : v[0];
+    else { x = rel ? x + v[n - 2] : v[n - 2]; y = rel ? y + v[n - 1] : v[n - 1]; }
+    if (c === 'm') { if (!first) first = { x, y }; sx = x; sy = y; cmd = rel ? 'l' : 'L'; } // extra pairs after M are lines
+  }
+  return first ? { first, last: { x, y } } : null;
 }
