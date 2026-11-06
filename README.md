@@ -23,9 +23,9 @@ Version 1 uses sample data. The URL also takes plain platform numbers (see
 
 | id | Station | Prompt | Status |
 |---|---|---|---|
-| `utrecht-centraal` | Utrecht Centraal | [prompt](docs/prompts/utrecht-centraal.md) | placeholder |
-| `amsterdam-centraal` | Amsterdam Centraal | [prompt](docs/prompts/amsterdam-centraal.md) | placeholder |
-| `rotterdam-centraal` | Rotterdam Centraal | [prompt](docs/prompts/rotterdam-centraal.md) | placeholder |
+| `utrecht-centraal` | Utrecht Centraal | [prompt](docs/prompts/utrecht-centraal.md) | ready |
+| `amsterdam-centraal` | Amsterdam Centraal | [prompt](docs/prompts/amsterdam-centraal.md) | ready |
+| `rotterdam-centraal` | Rotterdam Centraal | [prompt](docs/prompts/rotterdam-centraal.md) | ready |
 | `schiphol-airport` | Schiphol Airport | [prompt](docs/prompts/schiphol-airport.md) | placeholder |
 
 Each station is built on its own branch from its prompt. Every station follows
