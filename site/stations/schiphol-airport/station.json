@@ -40,7 +40,10 @@
     {"id": "lift56", "kind": "lift", "level": "platform", "label": {"nl": "de lift", "en": "the lift"}, "short": {"nl": "spoor 5/6", "en": "platform 5/6"}},
     {"id": "plaza12", "kind": "hall", "level": "plaza", "label": {"nl": "Schiphol Plaza", "en": "Schiphol Plaza"}},
     {"id": "plaza34", "kind": "hall", "level": "plaza", "label": {"nl": "Schiphol Plaza", "en": "Schiphol Plaza"}},
-    {"id": "plaza56", "kind": "hall", "level": "plaza", "label": {"nl": "Schiphol Plaza", "en": "Schiphol Plaza"}}
+    {"id": "plaza56", "kind": "hall", "level": "plaza", "label": {"nl": "Schiphol Plaza", "en": "Schiphol Plaza"}},
+    {"id": "wc-plaza-12", "kind": "toilet", "level": "plaza", "label": {"nl": "de toiletten vooraan in Schiphol Plaza, aan de kant van aankomsthal 1 en 2", "en": "the toilets at the front of Schiphol Plaza, towards arrival halls 1 and 2"}, "paid": false, "accessible": true, "outside_gates": false},
+    {"id": "wc-plaza-34", "kind": "toilet", "level": "plaza", "label": {"nl": "de toiletten vooraan in Schiphol Plaza, aan de kant van aankomsthal 3 en 4", "en": "the toilets at the front of Schiphol Plaza, towards arrival halls 3 and 4"}, "paid": false, "accessible": true, "outside_gates": false},
+    {"id": "wc-plaza-back", "kind": "toilet", "level": "plaza", "label": {"nl": "de toiletten achter in Schiphol Plaza", "en": "the toilets at the back of Schiphol Plaza"}, "paid": false, "accessible": true, "outside_gates": false}
   ],
   "edges": [
     {"from": "p1", "to": "esc12", "kind": "walk", "seconds": 50},
@@ -65,7 +68,11 @@
     {"from": "esc56", "to": "plaza56", "kind": "escalator", "seconds": 30},
     {"from": "lift56", "to": "plaza56", "kind": "lift", "seconds": 75},
     {"from": "plaza12", "to": "plaza34", "kind": "walk", "seconds": 26},
-    {"from": "plaza34", "to": "plaza56", "kind": "walk", "seconds": 26}
+    {"from": "plaza34", "to": "plaza56", "kind": "walk", "seconds": 26},
+    {"from": "plaza12", "to": "wc-plaza-12", "kind": "walk", "seconds": 68},
+    {"from": "plaza56", "to": "wc-plaza-34", "kind": "walk", "seconds": 96},
+    {"from": "plaza34", "to": "wc-plaza-back", "kind": "walk", "seconds": 115},
+    {"from": "plaza56", "to": "wc-plaza-back", "kind": "walk", "seconds": 113}
   ],
 
   "arrivals": [
@@ -86,6 +93,7 @@
     "Wikipedia NL: Station Schiphol Airport and the train series templates of the 2026 timetable",
     "Rijden de Treinen: live departures and arrivals at Schiphol Airport, 6 November 2026 (train numbers, platforms, rolling stock)",
     "ProRail news, 20 March 2024: the bus station renovation and three new stairways from the bus station to the platforms, in use from 2027",
-    "Schiphol project news, 2024-2026 (search excerpts): ramps replaced by stairs, double escalators, stairs to the bus station"
+    "Schiphol project news, 2024-2026 (search excerpts): ramps replaced by stairs, double escalators, stairs to the bus station",
+    "OpenStreetMap contributors: the same download, public toilets (amenity=toilets) on the Plaza level and the airside toilets by the baggage belts, 6 November 2026"
   ]
 }

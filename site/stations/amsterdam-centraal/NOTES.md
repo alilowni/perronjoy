@@ -45,6 +45,9 @@ confirms, and positions that had to be estimated, are marked **VERIFY**.
 | 5 | Rijden de Treinen train archive (search excerpts only) | ICE 120 arrived at 5a (7 February 2026); ICE 123 to Frankfurt (M) Hbf left from platform 4 (9 April 2026); Eurostar 9310, 9322 and 9334 to Paris-Nord left from 15 and 15a (18 July 2026); Sprinter 5406 runs Zandvoort aan Zee – Amsterdam Centraal; Zandvoort Sprinters used 1 and 2a/2b (2023) | 2026-11-05 |
 | 6 | ShowMeTheJourney and Seat61 station guides (search excerpts) | the Westtunnel serves the a ends of 2–15 and platform 1, the Oosttunnel the b ends of 2–10; a is the north-west (west) end, b the south-east end; all platforms except 1 have a and b | 2026-11-05 |
 | 7 | Treinreiziger, NL Times, SpoorPro, treinposities.nl (search excerpts) | Westtunnel reopened on 2 June 2025; demolition of part of the eastern passenger tunnel from 25 August 2025; lifts in the Oosttunnel out of service, expected back in June 2027 | 2026-11-05 |
+| 8 | OpenStreetMap contributors: API map download of the station area, 6 November 2026, read with a small script: public toilets (amenity=toilets with level, fee or charge, wheelchair, access) and check-in gates (barrier=turnstile) | the toilets in the Cuypers building at the west tunnel, in De Oost on platform 2 and on the IJ side, with fee and wheelchair tags; the turnstiles at the tunnel ends | 2026-11-06 |
+| 9 | NS, Toiletten (www.ns.nl, 6 November 2026): SANIFAIR toilets with staff at the large stations, EUR 1.10 a visit | the toilets at large stations are SANIFAIR, staffed and paid | 2026-11-06 |
+| 10 | Wikipedia NL, *Station Amsterdam Centraal* (page source) | "Op perron 2 aan de oostzijde zijn de lounge van NS International en betaalde toiletten"; paid toilets in the IJ hall | 2026-11-06 |
 
 ## Facts
 
@@ -129,6 +132,40 @@ counting the tram line, 1 park, 6 water, 30 tree, 7 bike). All positions from so
   "middentunnel" and "oosttunnel / gesloten".
 - No trees on the IJ side behind the station, on the IJboulevard or on the
   Pontplein: source 1 has none there.
+
+## Toilets
+
+Three public toilet blocks, all paid. Positions from source 8, mapped with
+the "Scale" section (along: `y = 500 + u`; across: from the OSM tracks named
+Spoor N at the same `u`).
+
+- `wc-west`: the toilets at the city end of the west tunnel (SANIFAIR in the
+  Cuypers building, OSM node 4344470390), level `tunnel` (street level, OSM
+  level 0), u −69, scene (−12, 431), 15 s from the west tunnel under 1/2.
+  Source 8, 9. paid: yes (OSM `fee=yes`, `charge=0.9 EUR`, older than the
+  NS price of €1.10); accessible: yes (OSM `wheelchair=yes`); outside_gates:
+  yes — the nearest OSM turnstile stands about 1 m on the platform side.
+  VERIFY the gate side.
+- `wc-oost`: the toilets at the east end of platform 2, by the NS
+  International lounge (OSM node 3381333509 in the building part De Oost),
+  level `platform`, u +135, scene (8, 634) on the wide east part of platform
+  2, 12 s from `p2b`. Source 8, 10. paid: yes (OSM `fee=yes`; Wikipedia NL
+  "betaalde toiletten"); accessible: yes (OSM `wheelchair=yes`);
+  outside_gates: no (on the platform).
+- `wc-ij`: the toilets in the IJ hall, by the bus station (SANIFAIR, OSM node
+  4977553280, De Ruijterkade 24B, open day and night), level `tunnel` (street
+  level), u −102, scene (331, 398); from the west tunnel under 15 out into
+  the IJ hall through the waypoint `ij-w`, 50 s. Source 8, 9, 10. paid: yes;
+  accessible: yes (OSM `wheelchair=yes`); outside_gates: yes (the IJ hall is
+  outside the gates). VERIFY the level: Wikipedia NL says the IJ hall, but
+  the OSM node has no level and its neighbours are on the bus station deck
+  (level 1).
+- Not included: the urinals on the Stationsplein and along the IJ, and the
+  toilets in HEMA and the cafés nearby (customers only or not at the
+  station).
+- Walking times are slower than the scene distance suggests in the 15 s edge
+  of `wc-west`: the platform area is widened ×3.1, and the checker measures
+  speed in scene units (already in ISSUES.md).
 
 ## Decisions
 
@@ -242,6 +279,12 @@ counting the tram line, 1 park, 6 water, 30 tree, 7 bike). All positions from so
   basin, the tram tracks on the Stationsplein, the bus ramp west of the IJhal,
   the IJtram terminus east of it, the IJboulevard deck. Check current OSM or an
   aerial photo.
+- Toilets `wc-west` (SANIFAIR, city end of the west tunnel): inside or outside
+  the gates; OSM has one turnstile about 1 m on the platform side. Check the
+  NS station map.
+- Toilets `wc-ij` (SANIFAIR, IJ side): street level in the IJ hall (Wikipedia
+  NL) or the bus station deck (OSM neighbours, level 1). Check on the NS
+  station map or at the station.
 
 ## Shell issues
 

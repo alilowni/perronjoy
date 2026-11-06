@@ -96,7 +96,8 @@
     {"id": "es20-n", "kind": "escalator", "level": "platform", "label": {"nl": "de roltrappen", "en": "the escalators"}, "short": {"nl": "spoor 20/21", "en": "platform 20/21"}},
     {"id": "es20-s", "kind": "escalator", "level": "platform", "label": {"nl": "de roltrappen", "en": "the escalators"}, "short": {"nl": "spoor 20/21", "en": "platform 20/21"}},
     {"id": "hall20-n", "kind": "hall", "level": "hall", "label": {"nl": "de stationshal", "en": "the station hall"}},
-    {"id": "hall20-s", "kind": "hall", "level": "hall", "label": {"nl": "de stationshal", "en": "the station hall"}}
+    {"id": "hall20-s", "kind": "hall", "level": "hall", "label": {"nl": "de stationshal", "en": "the station hall"}},
+    {"id": "wc-hall", "kind": "toilet", "level": "hall", "label": {"nl": "de toiletten in de stationshal, aan de Jaarbeurszijde", "en": "the toilets in the station hall, on the Jaarbeurs side"}, "paid": true, "accessible": true, "outside_gates": false}
   ],
 
   "edges": [
@@ -231,7 +232,10 @@
     {"from": "hall20-n", "to": "hall11-s", "kind": "walk", "seconds": 101},
     {"from": "hall20-n", "to": "hall14-s", "kind": "walk", "seconds": 86},
     {"from": "hall20-n", "to": "hall18-s", "kind": "walk", "seconds": 77},
-    {"from": "hall20-n", "to": "hall20-s", "kind": "walk", "seconds": 74}
+    {"from": "hall20-n", "to": "hall20-s", "kind": "walk", "seconds": 74},
+    {"from": "hall20-s", "to": "wc-hall", "kind": "walk", "seconds": 16},
+    {"from": "hall20-n", "to": "wc-hall", "kind": "walk", "seconds": 72},
+    {"from": "hall18-s", "to": "wc-hall", "kind": "walk", "seconds": 38}
   ],
 
   "arrivals": [
@@ -257,6 +261,8 @@
     "Wikipedia NL: Station Utrecht Centraal; Geschiedenis van station Utrecht Centraal",
     "ProRail and Treinenweb: platform works at tracks 3, 4 and 5 (2024, February-March 2026)",
     "Rijden de Treinen train archive for Utrecht Centraal, 2022-2026: platforms used by train series",
-    "DUIC and Gemeente Utrecht: Moreelsebrug (2016), Catharijnesingel (2020), Stationsplein bicycle parking (2019), Jaarbeursplein and Croeselaan trees (2018)"
+    "DUIC and Gemeente Utrecht: Moreelsebrug (2016), Catharijnesingel (2020), Stationsplein bicycle parking (2019), Jaarbeursplein and Croeselaan trees (2018)",
+    "OpenStreetMap contributors: API map download of the station area, 6 November 2026, read with a small script: public toilets (amenity=toilets with level, fee or charge, wheelchair, access) and check-in gates (barrier=turnstile)",
+    "NS, Toiletten (www.ns.nl, 6 November 2026): SANIFAIR toilets with staff at the large stations, EUR 1.10 a visit"
   ]
 }

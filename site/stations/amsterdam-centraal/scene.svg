@@ -345,5 +345,9 @@
     <circle id="node-s1314-a" cx="269" cy="316" r="1"/>
     <circle id="node-s1314-b" cx="269" cy="630" r="1"/>
     <circle id="node-s12-a" cx="21" cy="299" r="1"/>
+    <circle id="node-wc-west" cx="-12" cy="431" r="1"/>
+    <circle id="node-wc-oost" cx="8" cy="634" r="1"/>
+    <circle id="node-ij-w" cx="331" cy="433" r="1"/>
+    <circle id="node-wc-ij" cx="331" cy="398" r="1"/>
   </g>
 </svg>

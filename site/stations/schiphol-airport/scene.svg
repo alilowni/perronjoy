@@ -175,5 +175,8 @@
     <circle id="node-esc56" cx="135" cy="391" r="1"/>
     <circle id="node-lift56" cx="135" cy="415" r="1"/>
     <circle id="node-plaza56" cx="135" cy="405" r="1"/>
+    <circle id="node-wc-plaza-12" cx="-36" cy="393" r="1"/>
+    <circle id="node-wc-plaza-34" cx="207" cy="373" r="1"/>
+    <circle id="node-wc-plaza-back" cx="131" cy="518" r="1"/>
   </g>
 </svg>

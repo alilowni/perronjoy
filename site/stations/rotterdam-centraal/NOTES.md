@@ -48,6 +48,8 @@ estimated, are marked **VERIFY**.
 | 13 | Gemeente Rotterdam, plan *Proveniersplein* (NL.IMRO.0599.PB5047, 2013); Staatscourant 2013-32497; water board permits 2015–2016 | Proveniersplein on the north side of the station; new water dug on the square, two bridges, existing waterways joined | 2026-11-05 |
 | 14 | Bestemmingsplan *Provenierswijk-Bentincklaan* (NL.IMRO.0599.BP1050); funda listing; Gemeente Rotterdam felling permit (gmb-2017-120401) | the Provenierssingel and the Spoorsingel form the south edge of the Provenierswijk; the Provenierssingel is tree-lined; the Spoorsingel has trees | 2026-11-05 |
 | 15 | Route lists and timetables (tracestrack, Rijden de Treinen statistics, Eurostar timetable), OV in Nederland wiki as used for Utrecht Centraal | Intercity 1100 Den Haag Centraal – Eindhoven Centraal (Intercity 1171 a real member); Intercity direct series 900 Amsterdam – Breda; Eurostar 9316, 9328, 9340 and 9352 Rotterdam – Parijs-Noord; series 2800 Rotterdam – Utrecht | 2026-11-05 |
+| 16 | OpenStreetMap contributors: API map download of the station area, 6 November 2026, read with a small script: public toilets (amenity=toilets with level, fee or charge, wheelchair, access) and check-in gates (barrier=turnstile) | the SANIFAIR toilets on level 1 of the station hall, the escalator up to them, the platform escalators, the track bearing (73.8°) | 2026-11-06 |
+| 17 | NS, Toiletten (www.ns.nl, 6 November 2026): SANIFAIR toilets with staff at the large stations, EUR 1.10 a visit | the toilets at large stations are SANIFAIR, staffed and paid | 2026-11-06 |
 
 ## Facts
 
@@ -113,6 +115,29 @@ estimated, are marked **VERIFY**.
   the station "Rotterdam Centraal", "stationshal", "noordingang" and "passage".
 - No trees on the Stationsplein, along the Weena in front of the station or on
   the Proveniersplein itself: no source shows them.
+
+## Toilets
+
+One public toilet block at the station. This session could reach the
+OpenStreetMap API: the toilet and the escalators were measured in a frame
+along the real track bearing (73.8°, from OSM track 4), with the middle of the
+passage halfway between the two rows of platform escalators, and mapped to
+the scene with the "Scale" section (`y = 300 + w`; the main hall on the
+left).
+
+- `wc-hall`: the toilets on the first floor of the station hall, at the east
+  end (SANIFAIR, OSM node 5811007188, level 1, the height of the platforms),
+  w ≈ +50, about 12 m city-side of the escalators of platform 2; scene
+  (104, 349). Reached by the escalator `es-wc` (OSM, w ≈ +47) from the hall
+  floor: 34 s from the east side of the passage, 48 s from the middle of the
+  hall, 30 s up. New level `hall-1` (position 0: the first floor is at
+  platform height). Source 16, 17. paid: yes (OSM `fee=yes`; NS: SANIFAIR,
+  €1.10); accessible: yes (OSM `wheelchair=yes`); outside_gates: no — the only
+  turnstile in OSM stands about 17 m further towards the Stationsplein, on the
+  hall floor. VERIFY the gate side.
+- Not included: the paid toilets (`bagni della stazione`, OSM level −1) under
+  the Stationsplein, about 130 m from track 2, and a public toilet about 300 m
+  east of the station. They are not in the station.
 
 ## Decisions
 
@@ -216,6 +241,11 @@ estimated, are marked **VERIFY**.
   building outlines.
 - Train numbers marked plausible above, the made-up Sprinter 2917, and the
   sections of all sample trains. Check the NS timetable.
+- Toilets `wc-hall` (SANIFAIR, first floor of the station hall): inside or
+  outside the gates. OSM has a single turnstile about 17 m towards the
+  Stationsplein; check on the NS station map or at the station.
+- Toilets `wc-hall`: their position along the hall (OSM w ≈ +50, at the east
+  end of the drawn hall, which was estimated, see Scale).
 
 ## Shell issues
 

@@ -130,7 +130,11 @@
     {"id": "s1011-b", "kind": "waypoint", "level": "platform"},
     {"id": "s1314-a", "kind": "waypoint", "level": "platform"},
     {"id": "s1314-b", "kind": "waypoint", "level": "platform"},
-    {"id": "s12-a", "kind": "waypoint", "level": "platform"}
+    {"id": "s12-a", "kind": "waypoint", "level": "platform"},
+    {"id": "wc-west", "kind": "toilet", "level": "tunnel", "label": {"nl": "de toiletten aan de stadskant van de westtunnel", "en": "the toilets at the city end of the west tunnel"}, "paid": true, "accessible": true, "outside_gates": true},
+    {"id": "wc-oost", "kind": "toilet", "level": "platform", "label": {"nl": "de toiletten aan de oostkant van spoor 2, bij de lounge van NS International", "en": "the toilets at the east end of platform 2, by the NS International lounge"}, "paid": true, "accessible": true, "outside_gates": false},
+    {"id": "ij-w", "kind": "waypoint", "level": "tunnel"},
+    {"id": "wc-ij", "kind": "toilet", "level": "tunnel", "label": {"nl": "de toiletten in de IJhal, bij het busstation", "en": "the toilets in the IJ hall, by the bus station"}, "paid": true, "accessible": true, "outside_gates": true}
   ],
   "edges": [
     {"from": "s12-we", "to": "s12-ws", "kind": "walk", "seconds": 38},
@@ -238,7 +242,11 @@
     {"from": "wt1011", "to": "wt1314", "kind": "walk", "seconds": 29},
     {"from": "mt1011", "to": "mt1314", "kind": "walk", "seconds": 29},
     {"from": "wt1314", "to": "wt15", "kind": "walk", "seconds": 22},
-    {"from": "mt1314", "to": "mt15", "kind": "walk", "seconds": 22}
+    {"from": "mt1314", "to": "mt15", "kind": "walk", "seconds": 22},
+    {"from": "wt12", "to": "wc-west", "kind": "walk", "seconds": 15},
+    {"from": "p2b", "to": "wc-oost", "kind": "walk", "seconds": 12},
+    {"from": "wt15", "to": "ij-w", "kind": "walk", "seconds": 18},
+    {"from": "ij-w", "to": "wc-ij", "kind": "walk", "seconds": 32}
   ],
 
   "arrivals": [
@@ -264,6 +272,9 @@
     "Wikipedia NL, Station Amsterdam Centraal (6 platforms, 3 tunnels, 15 tracks, works, track use, train series 2026)",
     "ProRail news of 24 September and 6 October 2026 (spoor 11a in use, no trains at platform 13/14)",
     "Rijden de Treinen archive via search excerpts (ICE 120, ICE 123, Eurostar 9322 platforms in 2026)",
-    "Details and the VERIFY list: NOTES.md"
+    "Details and the VERIFY list: NOTES.md",
+    "OpenStreetMap contributors: API map download of the station area, 6 November 2026, read with a small script: public toilets (amenity=toilets with level, fee or charge, wheelchair, access) and check-in gates (barrier=turnstile)",
+    "NS, Toiletten (www.ns.nl, 6 November 2026): SANIFAIR toilets with staff at the large stations, EUR 1.10 a visit",
+    "Wikipedia NL, Station Amsterdam Centraal: paid toilets on platform 2 at the east end and in the IJ hall"
   ]
 }

@@ -144,6 +144,9 @@ function checkStation(id) {
     });
     if (unreached.length) err(`toilet "${wc.id}" cannot be reached from platform node(s) ${unreached.map((p) => '"' + p + '"').join(', ')} (SPEC 7, Toilets)`);
   });
+  if (data.no_toilets != null && typeof data.no_toilets !== 'boolean') err('"no_toilets" must be true or false (SPEC 6)');
+  if (data.no_toilets === true && toilets.length) warn('"no_toilets" is true but the graph has toilet nodes; remove one of them (SPEC 7, Toilets)');
+  if (data.status === 'ready' && !toilets.length && data.no_toilets !== true) err('a ready station needs at least one "toilet" node, or "no_toilets": true with the reason in NOTES.md under "## Toilets" (SPEC 7, Toilets)');
 
   /* ---- arrivals / departures ---- */
   const checkRecord = (r, where, isDep) => {
@@ -298,7 +301,11 @@ function checkStation(id) {
   if (!existsSync(notesPath)) err('NOTES.md is missing (SPEC 3)');
   else {
     const notes = readFileSync(notesPath, 'utf8');
-    ['## Sources', '## Facts', '## Surroundings', '## VERIFY', '## Shell issues'].forEach((h) => { if (!notes.includes(h)) err(`NOTES.md needs a "${h}" section (copy the template headings)`); });
+    ['## Sources', '## Facts', '## Surroundings', '## Toilets', '## VERIFY', '## Shell issues'].forEach((h) => { if (!notes.includes(h)) err(`NOTES.md needs a "${h}" section (copy the template headings)`); });
+    // Toilets: one line per toilet, or the reason there is none (SPEC 7, Toilets).
+    const wcSection = (notes.split(/^## Toilets[^\n]*$/m)[1] || '').split(/^## /m)[0];
+    nodes.filter((n) => n.kind === 'toilet').forEach((n) => { if (wcSection && !wcSection.includes(n.id)) warn(`NOTES.md "## Toilets" does not mention toilet "${n.id}"; give it one line with its source and flags (SPEC 7, Toilets)`); });
+    if (data.no_toilets === true && wcSection.replace(/\s+/g, ' ').trim().length < 20) err('"no_toilets" is true, so NOTES.md must explain under "## Toilets" why the station has no public toilet (SPEC 7, Toilets)');
   }
 
   info.push(`station.json ${jsonKB.toFixed(0)} KB, scene.svg ${svgKB.toFixed(0)} KB`);

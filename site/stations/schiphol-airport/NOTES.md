@@ -43,6 +43,7 @@ Facts that no source confirms are marked **VERIFY**.
 | 5 | Rijden de Treinen, live departures for Amsterdam Centraal, Utrecht Centraal and Leiden Centraal, same afternoon | comparison: Amsterdam and Leiden show sections (2a, 10b, 4a); Schiphol shows none | 2026-11-06 |
 | 6 | ProRail news, *Schiphol bus station being renovated to improve accessibility* (20 March 2024) | the bus stops make way for one large covered bus platform; three new stairways link the bus station directly to the train platforms, with check-in gates; in use from 2027; many bus stops moved temporarily during the works; the lifts, escalators and stairs between Schiphol Plaza and the platforms are renewed in the same project (Multimodal Hub Schiphol) | 2026-11-06 |
 | 7 | Schiphol project news (search excerpts only; schiphol.nl was blocked): 4 July 2024, 2 December 2024, July 2025, 25 November 2025, 19 June (no year in the excerpt) | the ramps were replaced by fixed stairs, the stairs widened and single escalators made double (work completed June 2024); BAM builds the three stairs to the bus station from April 2025 to summer 2026, in old openings in the tunnel roof; in November 2025 the connection was "taking shape", and on 19 June the stairways were completed, so June 2026; the new bus station is expected in autumn 2027 | 2026-11-06 |
+| 8 | OpenStreetMap contributors: the download of source 1 again, 6 November 2026, for amenity=toilets and barrier=turnstile | the public toilets on the Plaza level (fee, wheelchair, access), the airside toilets by the baggage belts and border control, no turnstiles at the station | 2026-11-06 |
 
 ## Facts
 
@@ -119,6 +120,34 @@ Facts that no source confirms are marked **VERIFY**.
   P6 (underground); the Panorama Boulevard roof terrace; the pond beyond the
   top edge; the A-terminal plot left of the tracks (OSM `landuse=greenfield`,
   surface unknown, left as plain ground); the building site of the bus station.
+
+## Toilets
+
+Three public toilet blocks on the Plaza level (OSM level 0), all landside.
+Positions from source 8 (the download of source 1), mapped with the "Scale" section (`y = 300 + u`;
+across: between the tracks by the real track centres, beyond the outer
+tracks ×0.6). OSM has no check-in gates at the station (no
+`barrier=turnstile`), so a traveller does not check out to reach them.
+
+- `wc-plaza-12`: the toilets at the front of Schiphol Plaza, towards arrival
+  halls 1 and 2 (OSM node 3450648909, by the shops under the Vertrekpassage),
+  level `plaza`, u 93, scene (−36, 393), 68 s from the escalators of 1/2.
+  Source 8. paid: no (OSM `fee=no`); accessible: yes (OSM `wheelchair=yes`);
+  outside_gates: no.
+- `wc-plaza-34`: the toilets at the front of Schiphol Plaza, towards arrival
+  halls 3 and 4 (OSM nodes 13463260534 and 3450648913, by the
+  Aankomstpassage), level `plaza`, u 73, scene (207, 373), 96 s from the
+  escalators of 5/6. Source 1. paid: no — no fee tag; VERIFY; accessible:
+  yes (OSM `wheelchair=yes`); outside_gates: no.
+- `wc-plaza-back`: the toilets at the back of Schiphol Plaza (OSM node
+  12229669225, `access=yes`, with a drinking-water tap), level `plaza`,
+  u 218, scene (131, 518), 113 s from the escalators of 5/6 and 115 s from
+  3/4. Source 1. paid: no — no fee tag; VERIFY; accessible: yes (OSM
+  `wheelchair=yes`); outside_gates: no.
+- Not included: the toilets by the baggage belts and the border control
+  (airside, behind passport control), the toilets in the piers and lounges,
+  the office toilets in the World Trade Center, and One Hundred Restrooms on
+  the Westelijke Randweg (outside the scene).
 
 ## Decisions
 
@@ -229,6 +258,10 @@ Facts that no source confirms are marked **VERIFY**.
 - The planned Plaza annex with a gated train area (Wikipedia NL: not started in
   2024) and the check-in gates near the new stairs (ProRail). Check whether
   gates now sit between the Plaza and the escalators.
+- Toilets `wc-plaza-34` and `wc-plaza-back`: free like `wc-plaza-12` (OSM has
+  `fee=no` only on that one). Check on site or on the Schiphol map.
+- Toilets on the Plaza level: no gates between the Plaza and the escalators in
+  OSM, so `outside_gates` is false for all three; see the gates item above.
 
 ## Shell issues
 
