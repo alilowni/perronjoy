@@ -31,3 +31,26 @@ Future features go in [IDEAS.md](IDEAS.md), not here.
 - [station:utrecht-centraal] Stairs from the Moreelsebrug down to the platforms are approved (expected 2027–2028); when they open, the bridge is a transfer route and must join the walking graph.
 - [station:utrecht-centraal] The planned building on the Jaarbeursplein (end of 2027) and the Jaarbeurskant plans for 2027–2030 will change the square and blocks drawn on the west side.
 - [station:utrecht-centraal] The sample trains follow the 2026 timetable (series and platforms seen in the 2022–2026 archive); check them again after the timetable change of 13 December 2026.
+- [tools] A request with broken percent-encoding (`/%E0%A4%A`) crashes the dev server: `decodeURIComponent` throws in the request handler and `npm run serve`, which listens on 0.0.0.0, stops.
+- [tools] The dev server tests the path with `startsWith(SITE)` and no separator, so `/..%2fsite-private%2fx` serves a file from a sibling folder whose name starts with `site`.
+- [tools] The checker does not check that track paths run from top to bottom (SPEC 5.1): with `track-1` reversed the template still passes, and its arrival from the top comes in from the bottom.
+- [tools] The checker does not flag a `transform` on a platform rect or a node circle (SPEC 5.2); the shell reads their plain coordinates, so the badges and the route land beside the drawn platform.
+- [tools] The checker only looks for colours in `fill` and `stroke`: a gradient (`fill="url(#g)"` with `stop-color`), a `<filter>` with `flood-color` and a `font-family` all pass, although SPEC 5.3 forbids colours, filters and fonts in the scene.
+- [tools] The checker does not check that a platform node lies on its platform rect; the template passes with `node-p3` moved onto the road beside the station.
+- [tools] The checker does not check the order of the layer groups (SPEC 5.2): with `layer-labels` moved before `layer-platforms` the template passes and its labels are painted under the tracks and platforms.
+- [tools] The checker asks for at least 4 departures and any number of arrivals, while SPEC 8 asks for 1–3 arrivals and 6–10 departures; nothing checks that the default transfer is comfortable and that one tight transfer exists.
+- [shell] Choosing another arrival in the selector draws no train at its platform; the train of the first arrival keeps standing where it stopped.
+- [shell] The north arrow's title is set once, so after a language switch it still says "Noord".
+- [shell] The map note for a station that does not exist or does not load ("Dit station bestaat niet.") does not follow a language switch.
+- [shell] Trains are drawn as whole 26 m cars, so a train can be up to 13 m longer than its `length_m`; Rotterdam's 200 m Eurostar at 2a is drawn 208 m long and runs past the platform end.
+- [shell] `site/js/i18n.js` defines `dep.arrival`, `dep.onTime` and `list.title`, but no page uses them.
+- [shell] The fallback link in `site/404.html` points to `/`, which on the project site (`…github.io/perronjoy/`) leads to the GitHub user root; only the script sends a visitor to Perronjoy.
+- [docs] SPEC 5.3 lists the allowed elements without `title`, but the template and every station start their scene with `<title>`.
+- [docs] SPEC 5.3 allows `fill="none"`, but every scene class sets its own fill, which wins over the attribute, so `fill="none"` cannot turn a shape with a class into an outline.
+- [docs] SPEC 7 gives stairs 20 s down and 30 s up, but an edge has one `seconds` value for both directions, so a station can give only one of them.
+- [docs] Section 3 of the four station prompts says to change files only in the station folder and to report shell problems in `NOTES.md`; it does not mention `ISSUES.md`, which AGENTS.md and SPEC 2 now ask builders to use.
+- [docs] `docs/prompts/rotterdam-centraal.md` puts the Delftse Poort west and the Groothandelsgebouw east of the station and expects `north_deg` 90; the build found the opposite sides and about 108 (see the station's NOTES.md).
+- [docs] AGENTS.md calls the template a station that follows every rule, but it has 4 departures and no tight transfer, against SPEC 8.
+- [ci] The workflow gives `pages: write` and `id-token: write` to every job, so the pull request check, which runs the branch's own checker, gets them too; only the deploy job needs them.
+- [station:rotterdam-centraal] Platform ends, the passage position and the surroundings are estimated from coordinates and search excerpts, because OpenStreetMap, the NS map and aerial photos were blocked; redraw them from OpenStreetMap when a session can reach it.
+- [station:rotterdam-centraal] The sample trains follow the series and platforms of the 2021–2025 archive; check them again after the timetable change of 13 December 2026.
