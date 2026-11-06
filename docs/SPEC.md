@@ -138,8 +138,10 @@ You draw only the station itself and its surroundings.
   platform area, same class. If present, the shell highlights the section.
 - A track centreline is **one `<path>`** with `id="track-N"`, one per
   platform number, running the full height of the scene, next to its
-  platform. Tracks without a platform may use `id="track-x-N"`; the shell
-  draws rails for every path whose id starts with `track-`.
+  platform. A dead-end track (*kopspoor*) starts or ends at its buffer stop
+  instead; its trains enter and leave at the open end only. Tracks without a
+  platform may use `id="track-x-N"`; the shell draws rails for every path
+  whose id starts with `track-`.
 - Node circles: `<circle id="node-ID" cx=".." cy=".." r="1"/>`. The id after
   `node-` must match a node in `station.json`.
 
