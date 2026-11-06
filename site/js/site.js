@@ -177,18 +177,18 @@
     if (!mapWrap) return;
     const id = qs.get('station') || '';
     try { S.index = await loadJSON('stations/index.json'); }
-    catch (e) { showNote(t('error.load')); return; }
+    catch (e) { showNote('error.load'); return; }
     S.entry = S.index.stations.find((s) => s.id === id) || null;
     buildStationNav();
-    if (!/^[a-z0-9_-]+$/i.test(id)) { showNote(t('error.notFound')); setTitle(t('app.name')); return; }
+    if (!/^[a-z0-9_-]+$/i.test(id)) { showNote('error.notFound'); setTitle(t('app.name')); return; }
     if (S.entry) setTitle(S.entry.name);
     try { S.data = await loadJSON('stations/' + id + '/station.json'); }
-    catch (e) { showNote(S.entry ? t('error.load') : t('error.notFound')); setTitle(t('app.name')); return; }
+    catch (e) { showNote(S.entry ? 'error.load' : 'error.notFound'); setTitle(t('app.name')); return; }
     if (S.data.name) setTitle(S.data.name);
     if (S.data.status === 'placeholder' || !Array.isArray(S.data.platforms) || !S.data.platforms.length) { showPlaceholder(); return; }
     let svgText;
     try { svgText = await loadText('stations/' + id + '/scene.svg'); }
-    catch (e) { showNote(t('error.load')); return; }
+    catch (e) { showNote('error.load'); return; }
 
     prepareData();
     injectScene(svgText);
@@ -222,8 +222,9 @@
     const h = $('#station-name'); if (h) h.textContent = name;
     document.title = name + ' · ' + t('app.name');
   }
-  function showNote(text) {
-    $('#map').appendChild(el('div', { class: 'map-note', text }));
+  function showNote(key) {
+    // data-i18n lets the language switch translate the note too
+    $('#map').appendChild(el('div', { class: 'map-note', 'data-i18n': key, text: t(key) }));
     $('#side').hidden = true;
     document.documentElement.dataset.pjState = 'error';
   }
@@ -921,7 +922,7 @@
   /* ---------- boot ---------- */
   document.addEventListener('DOMContentLoaded', () => {
     initIndex().catch((e) => console.error(e));
-    initStation().catch((e) => { console.error(e); const m = $('#map'); if (m) showNote(t('error.load')); });
+    initStation().catch((e) => { console.error(e); const m = $('#map'); if (m) showNote('error.load'); });
   });
 
   window.Perronjoy = { state: S, frame, select };
