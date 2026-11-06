@@ -43,9 +43,9 @@ one platform and must reach another platform in a few minutes. The page shows:
 
 Everything works in **Dutch and English** and in a **light and a dark
 theme**. Version 1 uses sample data. The URL
-`station.html?station=<id>&from=<platform>&to=<platform>` already works with
-plain platform numbers, so a later version can fill it from a live feed (for
-example the NS API) without changing the stations.
+`station.html?station=<id>&from=<platform>&to=<platform>` also works with
+plain platform numbers, without a sample record. Future features are listed in
+[IDEAS.md](../IDEAS.md), not here.
 
 ## 2. Who edits what
 
@@ -56,10 +56,12 @@ example the NS API) without changing the stations.
 | `site/css/site.css`, `site/js/*.js` | shell | no |
 | `site/stations/index.json` | shell (already lists all four stations) | no |
 | `site/stations/_template/` | shell example | no |
-| `tools/`, `docs/`, `README.md`, `AGENTS.md`, `CLAUDE.md`, `package.json`, `.github/` | shared | no |
+| `tools/`, `docs/`, `README.md`, `AGENTS.md`, `CLAUDE.md`, `IDEAS.md`, `package.json`, `.github/` | shared | no |
+| `ISSUES.md` | shared | add lines only |
 
 If the shell has a bug that blocks you, do not fix it on your branch. Write it
-in your `NOTES.md` under "Shell issues" and in your final message. Work
+in your `NOTES.md` under "Shell issues", add one line to
+[`ISSUES.md`](../ISSUES.md), and mention it in your final message. Work
 around it inside your folder when you can.
 
 ## 3. A station folder

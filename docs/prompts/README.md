@@ -18,8 +18,8 @@ Utrecht Centraal and Amsterdam Centraal were asked for. Rotterdam Centraal is
 the third busiest station and has a different layout: platforms above one
 wide passage. Schiphol Airport is the station where most travellers do not
 know the country, and it is underground with island platforms under one hall.
-Together they test the contract in four different ways. Den Haag Centraal (a
-terminus) and Leiden Centraal are good next candidates.
+Together they test the contract in four different ways. Candidates for more
+stations are in [IDEAS.md](../../IDEAS.md).
 
 ## How to use a prompt
 
@@ -28,6 +28,7 @@ terminus) and Leiden Centraal are good next candidates.
 3. When the agent is done, run `npm run check -- <id>` and
    `npm run smoke -- <id>` on the branch, and look at the screenshots.
 4. Open a pull request. The pull request check runs the contract checker.
-   Merge into `main`. The branches do not conflict, because each one only
-   changes its own station folder.
+   Merge into `main`. Each branch changes only its own station folder, plus
+   new lines in `ISSUES.md`. The only possible conflict is two branches
+   adding lines to `ISSUES.md`: keep all of them.
 5. After merging, update the status column in the [README](../../README.md).
