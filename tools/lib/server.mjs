@@ -14,7 +14,9 @@ const MIME = {
 
 export async function startServer(port = 0, host = '127.0.0.1') {
   const server = createServer(async (req, res) => {
-    let path = decodeURIComponent(new URL(req.url, 'http://x').pathname);
+    let path;
+    try { path = decodeURIComponent(new URL(req.url, 'http://x').pathname); }
+    catch (e) { res.writeHead(400); res.end('bad request'); return; } // broken percent-encoding must not stop the server
     if (path.endsWith('/')) path += 'index.html';
     const file = normalize(join(SITE, path));
     if (!file.startsWith(SITE)) { res.writeHead(403); res.end('forbidden'); return; }
