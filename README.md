@@ -11,13 +11,13 @@ walking route between them, and whether the time is enough.
 - No build step, no tracking, no cookies, no API keys.
 
 Perronjoy is not an official site of NS, ProRail or any station operator.
-Version 1 uses sample data. The URL already takes platform numbers, so a later
-version can read a live feed (for example the NS API) without changing the
-stations.
+Version 1 uses sample data. The URL also takes plain platform numbers (see
+[URL parameters](#url-parameters)).
 
 **Docs:** [Station contract (SPEC)](docs/SPEC.md) ·
 [Agent instructions](AGENTS.md) · [Build prompts](docs/prompts/README.md) ·
-[Template station](site/stations/_template/) · [Known issues](ISSUES.md)
+[Template station](site/stations/_template/) · [Known issues](ISSUES.md) ·
+[Ideas](IDEAS.md)
 
 ## Stations
 
@@ -106,6 +106,7 @@ docs/
   history/PROMPT.md          the original planning prompt
 AGENTS.md, CLAUDE.md         instructions for coding agents
 ISSUES.md                    known problems, one line each
+IDEAS.md                     future features, one line per idea
 .github/workflows/pages.yml  checks every pull request, publishes main
 ```
 
@@ -125,11 +126,7 @@ run `npm test` once and update the status column above.
 
 ## Later
 
-- Live platforms and times from a public departures source. The NS API needs
-  a key, so this needs a small proxy; decide then. The target data shape is in
-  [SPEC section 8](docs/SPEC.md#8-sample-arrivals-and-departures).
-- More stations: copy the template, follow the SPEC, and add one line to
-  `site/stations/index.json`.
+Future features are collected in [IDEAS.md](IDEAS.md).
 
 ---
 
@@ -151,4 +148,5 @@ Alle tijden zijn voorbeelddata.
 
 Starten: `npm run serve` en open `http://localhost:8000/`. Controleren:
 `npm run check`. De regels voor stations staan in [docs/SPEC.md](docs/SPEC.md)
-(Engelstalig).
+(Engelstalig). Bekende problemen staan in [ISSUES.md](ISSUES.md), ideeën voor
+later in [IDEAS.md](IDEAS.md) (beide Engelstalig).

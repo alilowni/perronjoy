@@ -5,7 +5,7 @@
 > Build prompts: [docs/prompts/](../prompts/README.md). The reference video it
 > mentions was removed from the repository; [SPEC section 10](../SPEC.md#10-look-and-motion)
 > describes it in words. The visual direction below (soft, bright, miniature)
-> still applies.
+> still applies. Future features now live only in [IDEAS.md](../../IDEAS.md).
 
 # Prompt — watch the reference, then write the plan
 

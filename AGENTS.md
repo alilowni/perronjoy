@@ -16,6 +16,7 @@ dark theme. Sample data only in version 1.
 3. If you were given a station prompt: the matching file in
    [docs/prompts/](docs/prompts/README.md).
 4. [ISSUES.md](ISSUES.md): known problems, one line each.
+5. [IDEAS.md](IDEAS.md): future features, not part of the current work.
 
 ## Repository map
 
@@ -33,6 +34,7 @@ site/                    the published website, served as is
 tools/                   Node scripts, no dependencies except optional Playwright
 docs/                    SPEC, build prompts, history
 ISSUES.md                known problems, one line each
+IDEAS.md                 future features, one line per idea
 ```
 
 ## Commands
@@ -61,6 +63,9 @@ the Claude cloud environment already has it.
   `ci`. It is the only shared file a station branch may change (add lines
   only). When an issue is fixed, strike it through and keep it:
   `- ~~[shell] problem~~ (fixed in <commit or PR>)`.
+- **Future features live only in [IDEAS.md](IDEAS.md)**, one line per idea
+  under its heading. Do not write plans for later in other files; link to
+  IDEAS.md instead.
 - **Shell work** (CSS, JS, HTML, tools, docs) happens on its own branch, not
   on a station branch. Keep `docs/SPEC.md`, the template station and the
   checker in step with any contract change.
