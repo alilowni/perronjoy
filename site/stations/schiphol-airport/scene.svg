@@ -1,0 +1,179 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Perronjoy scene: Schiphol Airport (id schiphol-airport). Rules: docs/SPEC.md section 5.
+  Sources and scale: NOTES.md in this folder.
+
+  - 1 unit = 1 metre along the tracks; y = metres along the tracks + 300,
+    from the south-west end (top: Hoofddorp, Leiden, HSL) to the north-east end
+    (bottom: Amsterdam). Tracks run from the top to the bottom.
+  - Across the tracks the station is widened x2.8 (track 1 at x 0, track 6 at x 158);
+    the surroundings beyond the outer tracks are compressed x0.6.
+  - The platforms lie underground. The surroundings are what lies above and
+    around them; Schiphol Plaza is drawn as a hall above the platforms.
+  - Written by a small script from an OpenStreetMap download; edit by hand and
+    keep the node circles in step with station.json.
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-125 0 425 660" data-perronjoy-scene="1">
+  <title>Schiphol Airport</title>
+
+  <!-- 1. Ground and surroundings (OpenStreetMap, November 2026) -->
+  <g id="layer-ground">
+    <rect class="ground" x="-125" y="0" width="425" height="660"/>
+    <polygon class="square" points="-6,385.7 -12,373.4 -18.9,385.8 -37.7,389.2 -63.3,326.9 -60.5,313.6 -6,342.5"/>
+    <polygon class="square" points="166.4,364.5 186,363.4 201,355.9 234.2,309.3 242.2,297.2 229.8,288.8 221.8,300.7 191,344.1 182,348.6 165.6,349.5"/>
+    <polygon class="square" points="-47.4,301.5 -22.8,316.9 -6,322.8 -6,309 -17.2,305.1 -40.6,290.5"/>
+    <polygon class="road" points="-53.4,303.6 -68.5,312.1 -79.1,310.3 -92.4,303.7 -105.8,291.3 -111.3,281.1 -113.2,265.8 -113.2,250 -118.8,250 -118.8,266.2 -116.7,282.9 -110.2,294.7 -95.6,308.3 -80.9,315.7 -67.5,317.9 -50.6,308.4"/>
+    <path class="road-line" d="M-52 306 L-68 315 L-80 313 L-94 306 L-108 293 L-114 282 L-116 266 L-116 250"/>
+    <polygon class="road" points="241.7,304.8 247.6,285.1 259.5,263.3 254.5,260.7 242.4,282.9 236.3,303.2"/>
+    <polygon class="road" points="267.7,-0.7 246.7,96.3 225.6,193.6 225.6,225.6 234,247.7 242.8,258.7 256.4,265.5 275.5,263.2 287.8,252 294.2,237.2 305.2,203 298.8,201 287.8,234.8 282.2,248 272.5,256.8 257.6,258.5 247.2,253.3 240,244.3 232.4,224.4 232.4,194.4 253.3,97.7 274.3,0.7"/>
+    <path class="road-line" d="M271 0 L250 97 L229 194 L229 225 L237 246 L245 256 L257 262 L274 260 L285 250 L291 236 L302 202"/>
+    <polygon class="park" points="269.3,254.4 255.7,257.4 239.4,243.9 232.8,205.5 267.3,39.6 285.5,50 286.5,45.1 269,33.8 298.3,-109 297.6,-136.9 313.7,-92.3 325.6,-14.5 318.6,20.1 322.3,30.6 309.2,72.1"/>
+    <polygon class="building" points="-92,340 -62,331 -38,386 190,386 236,323 250,345 307,456 230,568 219,586 -35,603 -70,609 -132,498 -143,468 -104,358"/>
+    <polygon class="roof" points="-105.5,384.6 -101.1,361.3 -87.8,345.8 -74.8,372.5 -59.6,426.6 -80.7,448.3"/>
+    <polygon class="roof" points="-76.5,459.5 -55.4,437.8 -52.5,438.6 -15.4,517.1 -20.4,535.6 -29,545.8 -40.8,545.8 -51.9,534.6"/>
+    <polygon class="roof" points="163.1,498.1 175.5,474.9 236.3,385.9 249.9,372.6 270.1,413.2 255.4,443.5 197,528.7 190.9,537.6 184.5,537.9"/>
+    <polygon class="building" points="-120.9,130.7 -127.9,126.6 -119,84.4 -91,101.4 -123,243.8 -140,233.6 -156.8,303.5 -164.2,291.9 -137.1,168.1 -129.7,172.4"/>
+    <polygon class="road" points="-6,67.3 -7.5,67 -15.4,102.5 -31.4,135.5 -59.5,266 -67.6,299.5 -67.6,328.7 -61.3,348.6 -10.2,469.8 -6,468 -6,456.2 -52.7,345.4 -58.4,327.3 -58.4,300.5 -50.5,268 -22.6,138.5 -6.6,105.5 -6,102.7"/>
+    <path class="road-line" d="M-11 104 L-27 137 L-55 267 L-63 300 L-63 328 L-57 347 L-6 468"/>
+    <polygon class="road" points="164,450.7 169.8,454.5 236.2,354 246.2,321.9 251,314.3 272.4,271.6 295.5,169 310.5,101 301.5,99 286.5,167 263.6,268.4 243,309.7 237.8,318.1 227.8,350 164,446.7"/>
+    <path class="road-line" d="M166 452 L232 352 L242 320 L247 312 L268 270 L291 168 L306 100"/>
+    <polygon class="block" points="224.2,-16.8 164,-54.1 164,234.7 170.8,238.8 174.6,222.1 164,215.6 164,198.8 179.8,208.4 183.3,193 179,190.3 190.5,158.9 174.1,148.8 177.5,133.8 193.8,143.9 197.3,128.2 192.7,125.3 204.6,94.8 180.3,79.8 183.5,65.7 208.1,80.9 214.7,28.2 194.2,15.7 197.4,1.5 222,16.8"/>
+    <polygon class="block block--tall" points="191.6,231.5 164,214.8 164,199.2 166.3,195.4 200.8,216.3"/>
+    <polygon class="block block--tall" points="182.4,177 216.6,198.1 206.5,214.4 172.3,193.3"/>
+    <polygon class="block block--tall" points="205.8,166.5 170.7,147.6 179.3,131.8 214.4,150.8"/>
+    <polygon class="block block--tall" points="195.7,114.1 228.7,134.3 219.7,149.2 186.6,129.1"/>
+    <polygon class="block block--tall" points="186.5,62.1 228.6,88.1 219.3,103.2 177.2,77.2"/>
+    <polygon class="block block--tall" points="210.1,48.7 244.5,70 234.8,85.8 200.3,64.4"/>
+    <polygon class="block block--tall" points="233.8,39.2 191.1,13 200.3,-2 243,24.1"/>
+    <polygon class="block block--tall" points="224.4,-16 259,5.6 249,21.5 214.5,-0.1"/>
+    <polygon class="block block--tall" points="164,234.7 194.3,252.8 196.8,254.4 194.6,274.5 193.2,283.1 186,301.3 171.7,312 164,307.4"/>
+    <polygon class="block block--tall" points="251.3,322.3 279.5,281.4 301.3,323 310.9,341.3 282.8,382.2 258.3,370.6 254.9,364.2"/>
+    <circle class="tree" cx="288" cy="8" r="3.6"/>
+    <circle class="tree" cx="284" cy="22" r="3.2"/>
+    <circle class="tree" cx="281" cy="37" r="3.6"/>
+    <circle class="tree" cx="290" cy="51" r="3.4"/>
+    <circle class="tree" cx="266" cy="53" r="3"/>
+    <circle class="tree" cx="263" cy="69" r="3.4"/>
+    <circle class="tree" cx="261" cy="84" r="3"/>
+    <circle class="tree" cx="256" cy="101" r="3.4"/>
+    <circle class="tree" cx="294" cy="103" r="3.6"/>
+    <circle class="tree" cx="252" cy="122" r="3.2"/>
+    <circle class="tree" cx="294" cy="135" r="3.4"/>
+    <circle class="tree" cx="248" cy="135" r="3"/>
+    <circle class="tree" cx="244" cy="160" r="3.4"/>
+    <circle class="tree" cx="288" cy="160" r="3.6"/>
+    <circle class="tree" cx="240" cy="180" r="3"/>
+    <circle class="tree" cx="284" cy="182" r="3.4"/>
+    <circle class="tree" cx="273" cy="203" r="3.6"/>
+    <circle class="tree" cx="265" cy="215" r="3"/>
+    <circle class="tree" cx="276" cy="219" r="3.2"/>
+    <circle class="tree" cx="259" cy="230" r="3.6"/>
+    <circle class="tree" cx="246" cy="231" r="3"/>
+    <circle class="tree" cx="271" cy="243" r="3.4"/>
+    <circle class="tree" cx="257" cy="248" r="3.2"/>
+    <circle class="tree" cx="211" cy="243" r="3"/>
+    <circle class="tree" cx="210" cy="257" r="3.4"/>
+    <circle class="tree" cx="221" cy="265" r="3"/>
+    <circle class="tree" cx="206" cy="272" r="3.2"/>
+    <circle class="tree" cx="219" cy="274" r="3.4"/>
+    <circle class="tree" cx="212" cy="284" r="3"/>
+    <circle class="tree" cx="201" cy="292" r="3.2"/>
+    <circle class="tree" cx="210" cy="297" r="3"/>
+    <rect class="bike" x="219" y="251.8" width="15" height="1.4" rx="0.7"/>
+    <rect class="bike" x="219" y="254.6" width="15" height="1.4" rx="0.7"/>
+    <rect class="bike" x="231" y="324.2" width="13" height="1.4" rx="0.7"/>
+    <rect class="bike" x="231" y="327" width="13" height="1.4" rx="0.7"/>
+  </g>
+
+  <!-- 2. Passages below the platforms: none at Schiphol Airport -->
+  <g id="layer-passages"></g>
+
+  <!-- 3. Track centrelines, drawn from top (south-west) to bottom (north-east) -->
+  <g id="layer-tracks">
+    <path id="track-1" d="M0 0 L0 660"/>
+    <path id="track-2" d="M46 0 L46 660"/>
+    <path id="track-3" d="M56 0 L56 660"/>
+    <path id="track-4" d="M102 0 L102 660"/>
+    <path id="track-5" d="M112 0 L112 660"/>
+    <path id="track-6" d="M158 0 L158 660"/>
+  </g>
+
+  <!-- 4. Platforms: three islands, 1/2, 3/4 and 5/6, under Schiphol Plaza -->
+  <g id="layer-platforms">
+    <rect id="platform-1" class="platform" x="5" y="115" width="18" height="432" rx="3"/>
+    <rect id="platform-2" class="platform" x="23" y="115" width="18" height="432" rx="3"/>
+    <rect id="platform-3" class="platform" x="61" y="116" width="18" height="438" rx="3"/>
+    <rect id="platform-4" class="platform" x="79" y="117" width="18" height="428" rx="3"/>
+    <rect id="platform-5" class="platform" x="117" y="117" width="18" height="452" rx="3"/>
+    <rect id="platform-6" class="platform" x="135" y="117" width="18" height="451" rx="3"/>
+  </g>
+
+  <!-- 5. Schiphol Plaza above the platforms; stairs, escalators and lifts on each island -->
+  <g id="layer-buildings">
+    <polygon class="passage passage--above" points="-14,386 172,386 172,474 118,513 -14,518"/>
+    <rect class="stairs" x="18.5" y="373" width="9" height="15" rx="0.8"/>
+    <path class="stairs-line" d="M18.5 376 H27.5 M18.5 379 H27.5 M18.5 382 H27.5 M18.5 385 H27.5"/>
+    <rect class="stairs" x="19" y="391" width="8" height="10" rx="0.8"/>
+    <path class="stairs-line" d="M19 393.5 H27 M19 396 H27 M19 398.5 H27"/>
+    <rect class="stairs" x="20.5" y="412.5" width="5" height="5" rx="0.8"/>
+    <rect class="stairs" x="19" y="422" width="8" height="11" rx="0.8"/>
+    <path class="stairs-line" d="M19 424.5 H27 M19 427 H27 M19 429.5 H27 M19 432 H27"/>
+    <rect class="stairs" x="18.5" y="438" width="9" height="15" rx="0.8"/>
+    <path class="stairs-line" d="M18.5 441 H27.5 M18.5 444 H27.5 M18.5 447 H27.5 M18.5 450 H27.5"/>
+    <rect class="stairs" x="19" y="303" width="8" height="11" rx="0.8"/>
+    <path class="stairs-line" d="M19 306 H27 M19 309 H27 M19 312 H27"/>
+    <rect class="stairs" x="74.5" y="373" width="9" height="15" rx="0.8"/>
+    <path class="stairs-line" d="M74.5 376 H83.5 M74.5 379 H83.5 M74.5 382 H83.5 M74.5 385 H83.5"/>
+    <rect class="stairs" x="75" y="391" width="8" height="10" rx="0.8"/>
+    <path class="stairs-line" d="M75 393.5 H83 M75 396 H83 M75 398.5 H83"/>
+    <rect class="stairs" x="76.5" y="412.5" width="5" height="5" rx="0.8"/>
+    <rect class="stairs" x="75" y="422" width="8" height="11" rx="0.8"/>
+    <path class="stairs-line" d="M75 424.5 H83 M75 427 H83 M75 429.5 H83 M75 432 H83"/>
+    <rect class="stairs" x="74.5" y="438" width="9" height="15" rx="0.8"/>
+    <path class="stairs-line" d="M74.5 441 H83.5 M74.5 444 H83.5 M74.5 447 H83.5 M74.5 450 H83.5"/>
+    <rect class="stairs" x="75" y="310" width="8" height="11" rx="0.8"/>
+    <path class="stairs-line" d="M75 313 H83 M75 316 H83 M75 319 H83"/>
+    <rect class="stairs" x="130.5" y="373" width="9" height="15" rx="0.8"/>
+    <path class="stairs-line" d="M130.5 376 H139.5 M130.5 379 H139.5 M130.5 382 H139.5 M130.5 385 H139.5"/>
+    <rect class="stairs" x="131" y="391" width="8" height="10" rx="0.8"/>
+    <path class="stairs-line" d="M131 393.5 H139 M131 396 H139 M131 398.5 H139"/>
+    <rect class="stairs" x="132.5" y="412.5" width="5" height="5" rx="0.8"/>
+    <rect class="stairs" x="131" y="422" width="8" height="11" rx="0.8"/>
+    <path class="stairs-line" d="M131 424.5 H139 M131 427 H139 M131 429.5 H139 M131 432 H139"/>
+    <rect class="stairs" x="130.5" y="438" width="9" height="15" rx="0.8"/>
+    <path class="stairs-line" d="M130.5 441 H139.5 M130.5 444 H139.5 M130.5 447 H139.5 M130.5 450 H139.5"/>
+    <rect class="stairs" x="131" y="318" width="8" height="11" rx="0.8"/>
+    <path class="stairs-line" d="M131 321 H139 M131 324 H139 M131 327 H139"/>
+  </g>
+
+  <!-- 6. Labels: Dutch text, English in data-en -->
+  <g id="layer-labels">
+    <text class="label" x="51" y="459" font-size="5.4" text-anchor="middle" data-en="Schiphol Airport">Schiphol Airport</text>
+    <text class="label label--muted" x="51" y="464.6" font-size="3.4" text-anchor="middle" data-en="Schiphol Plaza">Schiphol Plaza</text>
+    <text class="label label--muted" x="-84" y="476" font-size="3.4" text-anchor="middle" data-en="Departures 1–2">Vertrekhal 1–2</text>
+    <text class="label label--muted" x="-84" y="481.5" font-size="3" text-anchor="middle" data-en="Arrivals 1–2">Aankomsthal 1–2</text>
+    <text class="label label--muted" x="228" y="440" font-size="3.4" text-anchor="middle" data-en="Departures 3">Vertrekhal 3</text>
+    <text class="label label--muted" x="228" y="445.5" font-size="3" text-anchor="middle" data-en="Arrivals 3–4">Aankomsthal 3–4</text>
+    <text class="label label--muted" x="207" y="333" font-size="3.2" text-anchor="middle" transform="rotate(-55 207 333)" data-en="bus station">busstation</text>
+    <text class="label label--muted" x="186" y="46" font-size="4" text-anchor="middle" data-en="P1">P1</text>
+  </g>
+
+  <!-- 7. Walking-graph nodes (invisible) -->
+  <g id="layer-nodes">
+    <circle id="node-p1" cx="14" cy="331" r="1"/>
+    <circle id="node-p2" cx="32" cy="331" r="1"/>
+    <circle id="node-esc12" cx="23" cy="391" r="1"/>
+    <circle id="node-lift12" cx="23" cy="415" r="1"/>
+    <circle id="node-plaza12" cx="23" cy="405" r="1"/>
+    <circle id="node-p3" cx="70" cy="333" r="1"/>
+    <circle id="node-p4" cx="88" cy="333" r="1"/>
+    <circle id="node-esc34" cx="79" cy="391" r="1"/>
+    <circle id="node-lift34" cx="79" cy="415" r="1"/>
+    <circle id="node-plaza34" cx="79" cy="405" r="1"/>
+    <circle id="node-p5" cx="126" cy="343" r="1"/>
+    <circle id="node-p6" cx="144" cy="343" r="1"/>
+    <circle id="node-esc56" cx="135" cy="391" r="1"/>
+    <circle id="node-lift56" cx="135" cy="415" r="1"/>
+    <circle id="node-plaza56" cx="135" cy="405" r="1"/>
+  </g>
+</svg>
