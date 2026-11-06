@@ -119,10 +119,12 @@ Only `site/` is published; the docs and tools are not.
 
 ## Merging the four station branches
 
-Each station branch changes only `site/stations/<id>/`. The branches do not
-touch each other or the shell, so they merge into `main` in any order without
-conflicts. The pull request check runs the contract checker. After merging,
-run `npm test` once and update the status column above.
+Each station branch changes only `site/stations/<id>/`, plus new lines in
+`ISSUES.md`. The branches do not touch each other or the shell, so they merge
+into `main` in any order. The only possible conflict is two branches adding
+lines to `ISSUES.md`: keep all of them. The pull request check runs the
+contract checker. After merging, run `npm test` once and update the status
+column above.
 
 ## Later
 

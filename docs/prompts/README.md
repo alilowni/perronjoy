@@ -28,6 +28,7 @@ stations are in [IDEAS.md](../../IDEAS.md).
 3. When the agent is done, run `npm run check -- <id>` and
    `npm run smoke -- <id>` on the branch, and look at the screenshots.
 4. Open a pull request. The pull request check runs the contract checker.
-   Merge into `main`. The branches do not conflict, because each one only
-   changes its own station folder.
+   Merge into `main`. Each branch changes only its own station folder, plus
+   new lines in `ISSUES.md`. The only possible conflict is two branches
+   adding lines to `ISSUES.md`: keep all of them.
 5. After merging, update the status column in the [README](../../README.md).
