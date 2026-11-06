@@ -2,6 +2,90 @@
   "id": "schiphol-airport",
   "name": "Schiphol Airport",
   "city": "Haarlemmermeer",
-  "status": "placeholder",
-  "_comment": "Placeholder. The station builder replaces this file with the full station.json and adds scene.svg and NOTES.md. See docs/SPEC.md and docs/prompts/ in the repository."
+  "status": "ready",
+
+  "orientation": {"north_deg": 142},
+
+  "ends": {
+    "top": {"towards": {"nl": "Leiden, Rotterdam, Brussel", "en": "Leiden, Rotterdam, Brussel"}},
+    "bottom": {"towards": {"nl": "Amsterdam, Utrecht, Zwolle", "en": "Amsterdam, Utrecht, Zwolle"}}
+  },
+
+  "levels": [
+    {"id": "platform", "label": {"nl": "perron", "en": "platform"}, "position": 0},
+    {"id": "plaza", "label": {"nl": "Schiphol Plaza", "en": "Schiphol Plaza"}, "position": 1}
+  ],
+
+  "platforms": [
+    {"id": "1"},
+    {"id": "2"},
+    {"id": "3"},
+    {"id": "4"},
+    {"id": "5"},
+    {"id": "6"}
+  ],
+
+  "nodes": [
+    {"id": "p1", "kind": "platform", "level": "platform", "platform": "1"},
+    {"id": "p2", "kind": "platform", "level": "platform", "platform": "2"},
+    {"id": "p3", "kind": "platform", "level": "platform", "platform": "3"},
+    {"id": "p4", "kind": "platform", "level": "platform", "platform": "4"},
+    {"id": "p5", "kind": "platform", "level": "platform", "platform": "5"},
+    {"id": "p6", "kind": "platform", "level": "platform", "platform": "6"},
+    {"id": "esc12", "kind": "escalator", "level": "platform", "label": {"nl": "de roltrappen", "en": "the escalators"}, "short": {"nl": "spoor 1/2", "en": "platform 1/2"}},
+    {"id": "lift12", "kind": "lift", "level": "platform", "label": {"nl": "de lift", "en": "the lift"}, "short": {"nl": "spoor 1/2", "en": "platform 1/2"}},
+    {"id": "esc34", "kind": "escalator", "level": "platform", "label": {"nl": "de roltrappen", "en": "the escalators"}, "short": {"nl": "spoor 3/4", "en": "platform 3/4"}},
+    {"id": "lift34", "kind": "lift", "level": "platform", "label": {"nl": "de lift", "en": "the lift"}, "short": {"nl": "spoor 3/4", "en": "platform 3/4"}},
+    {"id": "esc56", "kind": "escalator", "level": "platform", "label": {"nl": "de roltrappen", "en": "the escalators"}, "short": {"nl": "spoor 5/6", "en": "platform 5/6"}},
+    {"id": "lift56", "kind": "lift", "level": "platform", "label": {"nl": "de lift", "en": "the lift"}, "short": {"nl": "spoor 5/6", "en": "platform 5/6"}},
+    {"id": "plaza12", "kind": "hall", "level": "plaza", "label": {"nl": "Schiphol Plaza", "en": "Schiphol Plaza"}},
+    {"id": "plaza34", "kind": "hall", "level": "plaza", "label": {"nl": "Schiphol Plaza", "en": "Schiphol Plaza"}},
+    {"id": "plaza56", "kind": "hall", "level": "plaza", "label": {"nl": "Schiphol Plaza", "en": "Schiphol Plaza"}}
+  ],
+  "edges": [
+    {"from": "p1", "to": "esc12", "kind": "walk", "seconds": 50},
+    {"from": "p1", "to": "lift12", "kind": "walk", "seconds": 70},
+    {"from": "p2", "to": "esc12", "kind": "walk", "seconds": 50},
+    {"from": "p2", "to": "lift12", "kind": "walk", "seconds": 70},
+    {"from": "p1", "to": "p2", "kind": "walk", "seconds": 10},
+    {"from": "esc12", "to": "plaza12", "kind": "escalator", "seconds": 30},
+    {"from": "lift12", "to": "plaza12", "kind": "lift", "seconds": 75},
+    {"from": "p3", "to": "esc34", "kind": "walk", "seconds": 48},
+    {"from": "p3", "to": "lift34", "kind": "walk", "seconds": 68},
+    {"from": "p4", "to": "esc34", "kind": "walk", "seconds": 48},
+    {"from": "p4", "to": "lift34", "kind": "walk", "seconds": 68},
+    {"from": "p3", "to": "p4", "kind": "walk", "seconds": 10},
+    {"from": "esc34", "to": "plaza34", "kind": "escalator", "seconds": 30},
+    {"from": "lift34", "to": "plaza34", "kind": "lift", "seconds": 75},
+    {"from": "p5", "to": "esc56", "kind": "walk", "seconds": 40},
+    {"from": "p5", "to": "lift56", "kind": "walk", "seconds": 60},
+    {"from": "p6", "to": "esc56", "kind": "walk", "seconds": 40},
+    {"from": "p6", "to": "lift56", "kind": "walk", "seconds": 60},
+    {"from": "p5", "to": "p6", "kind": "walk", "seconds": 10},
+    {"from": "esc56", "to": "plaza56", "kind": "escalator", "seconds": 30},
+    {"from": "lift56", "to": "plaza56", "kind": "lift", "seconds": 75},
+    {"from": "plaza12", "to": "plaza34", "kind": "walk", "seconds": 26},
+    {"from": "plaza34", "to": "plaza56", "kind": "walk", "seconds": 26}
+  ],
+
+  "arrivals": [
+    {"id": "arr-spr-8157", "train": {"type": "Sprinter", "number": "8157"}, "origin": "Amsterdam Centraal", "platform": "4", "section": null, "from_end": "bottom", "in_min": 0, "length_m": 140},
+    {"id": "arr-spr-4157", "train": {"type": "Sprinter", "number": "4157"}, "origin": "Hoorn Kersenboogerd", "platform": "4", "section": null, "from_end": "bottom", "in_min": 5, "length_m": 101}
+  ],
+  "departures": [
+    {"id": "dep-icd-2454", "train": {"type": "Intercity direct", "number": "2454"}, "destination": "Rotterdam Centraal", "platform": "6", "section": null, "to_end": "top", "in_min": 8, "status": "on_time", "delay_min": 0, "length_m": 170},
+    {"id": "dep-est-9370", "train": {"type": "Eurostar", "number": "9370"}, "destination": "Parijs-Noord", "platform": "5", "section": null, "to_end": "top", "in_min": 9, "status": "on_time", "delay_min": 0, "length_m": 200},
+    {"id": "dep-spr-8254", "train": {"type": "Sprinter", "number": "8254"}, "destination": "Amsterdam Centraal", "platform": "3", "section": null, "to_end": "bottom", "in_min": 11, "status": "on_time", "delay_min": 0, "length_m": 140},
+    {"id": "dep-ic-761", "train": {"type": "Intercity", "number": "761"}, "destination": "Groningen", "platform": "2", "section": null, "to_end": "bottom", "in_min": 13, "status": "on_time", "delay_min": 0, "length_m": 218},
+    {"id": "dep-spr-4361", "train": {"type": "Sprinter", "number": "4361"}, "destination": "Lelystad Centrum", "platform": "1", "section": null, "to_end": "bottom", "in_min": 16, "status": "on_time", "delay_min": 0, "length_m": 140},
+    {"id": "dep-ic-3152", "train": {"type": "Intercity", "number": "3152"}, "destination": "Den Haag Centraal", "platform": "5", "section": null, "to_end": "top", "in_min": 21, "status": "delayed", "delay_min": 3, "length_m": 271}
+  ],
+
+  "sources": [
+    "OpenStreetMap contributors: API map download of the station area, 6 November 2026 (platforms, tracks, stairs, escalators, lifts, buildings, roads, trees)",
+    "Wikipedia NL: Station Schiphol Airport and the train series templates of the 2026 timetable",
+    "Rijden de Treinen: live departures and arrivals at Schiphol Airport, 6 November 2026 (train numbers, platforms, rolling stock)",
+    "ProRail news, 20 March 2024: the bus station renovation and three new stairways from the bus station to the platforms, in use from 2027",
+    "Schiphol project news, 2024-2026 (search excerpts): ramps replaced by stairs, double escalators, stairs to the bus station"
+  ]
 }
