@@ -340,7 +340,10 @@ edges. The cost is seconds.
   different platforms, with at most one `delayed` departure.
 - The default "your train" is the soonest departure on another platform
   than the arrival. Make that a realistic, comfortable transfer. Also include
-  one departure that makes a tight transfer.
+  one departure that makes a tight transfer. Because of that rule, the tight
+  one must leave from the arrival's own platform number (the other section),
+  or leave after the default with a longer walk; a sooner departure on
+  another platform would become the default.
 - Use real train numbers when you know them. If not, use a plausible number
   and say so in `NOTES.md`.
 
