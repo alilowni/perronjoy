@@ -15,6 +15,7 @@ dark theme. Sample data only in version 1.
 2. [docs/SPEC.md](docs/SPEC.md): the station contract. Binding for station work.
 3. If you were given a station prompt: the matching file in
    [docs/prompts/](docs/prompts/README.md).
+4. [ISSUES.md](ISSUES.md): known problems, one line each.
 
 ## Repository map
 
@@ -31,6 +32,7 @@ site/                    the published website, served as is
   stations/<id>/         station.json, scene.svg, NOTES.md
 tools/                   Node scripts, no dependencies except optional Playwright
 docs/                    SPEC, build prompts, history
+ISSUES.md                known problems, one line each
 ```
 
 ## Commands
@@ -50,9 +52,15 @@ the Claude cloud environment already has it.
 
 ## Rules
 
-- **Station work touches only `site/stations/<id>/`.** Shell, tools and docs
-  are shared; four station branches change them at the same time would not
-  merge. Report shell problems in the station's `NOTES.md` instead.
+- **Station work touches only `site/stations/<id>/`** (plus new lines in
+  `ISSUES.md`). Shell, tools and docs are shared; four station branches change
+  them at the same time would not merge. Report shell problems in the
+  station's `NOTES.md` and in `ISSUES.md` instead.
+- **Found an issue? Add it to [ISSUES.md](ISSUES.md)**: one line,
+  `- [area] problem`, with area `shell`, `station:<id>`, `tools`, `docs` or
+  `ci`. It is the only shared file a station branch may change (add lines
+  only). When an issue is fixed, strike it through and keep it:
+  `- ~~[shell] problem~~ (fixed in <commit or PR>)`.
 - **Shell work** (CSS, JS, HTML, tools, docs) happens on its own branch, not
   on a station branch. Keep `docs/SPEC.md`, the template station and the
   checker in step with any contract change.

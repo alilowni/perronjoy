@@ -17,7 +17,7 @@ stations.
 
 **Docs:** [Station contract (SPEC)](docs/SPEC.md) ·
 [Agent instructions](AGENTS.md) · [Build prompts](docs/prompts/README.md) ·
-[Template station](site/stations/_template/)
+[Template station](site/stations/_template/) · [Known issues](ISSUES.md)
 
 ## Stations
 
@@ -105,6 +105,7 @@ docs/
   prompts/                   one build prompt per station
   history/PROMPT.md          the original planning prompt
 AGENTS.md, CLAUDE.md         instructions for coding agents
+ISSUES.md                    known problems, one line each
 .github/workflows/pages.yml  checks every pull request, publishes main
 ```
 
