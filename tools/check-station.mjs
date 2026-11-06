@@ -173,6 +173,10 @@ function checkStation(id) {
   for (const m of svg.matchAll(/<([a-zA-Z][\w:-]*)/g)) if (!SCENE_ELEMENTS.has(m[1]) && !['script', 'style', 'image', 'foreignObject', 'tspan'].includes(m[1])) otherElements.add(m[1]);
   if (otherElements.size) err(`scene.svg uses <${[...otherElements].join('>, <')}>; allowed elements are ${[...SCENE_ELEMENTS].join(', ')} (SPEC 5.3)`);
   ['layer-ground', 'layer-tracks', 'layer-platforms', 'layer-nodes'].forEach((l) => { if (!new RegExp(`id="${l}"`).test(svg)) err(`scene.svg needs a group with id="${l}"`); });
+  // The layer order is fixed (SPEC 5.2): a group out of place is painted above or below the wrong things.
+  const LAYER_ORDER = ['layer-ground', 'layer-passages', 'layer-tracks', 'layer-platforms', 'layer-buildings', 'layer-labels', 'layer-nodes'];
+  const layerAt = LAYER_ORDER.map((l) => [l, svg.search(new RegExp(`<g[^>]*\\sid="${l}"`))]).filter(([, i]) => i >= 0);
+  if (layerAt.some(([, i], k) => k > 0 && i < layerAt[k - 1][1])) err(`the layer groups are out of order (${layerAt.slice().sort((a, b) => a[1] - b[1]).map(([l]) => l).join(', ')}); keep them as ${LAYER_ORDER.join(', ')} (SPEC 5.2)`);
   const ids = new Set(); for (const m of svg.matchAll(/\sid="([^"]+)"/g)) { if (ids.has(m[1])) err(`duplicate id "${m[1]}" in scene.svg`); ids.add(m[1]); }
   platforms.forEach((p) => {
     if (!new RegExp(`<path[^>]*id="track-${p.id}"`).test(svg) && !new RegExp(`id="track-${p.id}"[^>]*>`).test(svg)) err(`scene.svg needs <path id="track-${p.id}">`);
