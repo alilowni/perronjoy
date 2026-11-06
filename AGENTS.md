@@ -66,6 +66,10 @@ the Claude cloud environment already has it.
 - **Future features live only in [IDEAS.md](IDEAS.md)**, one line per idea
   under its heading. Do not write plans for later in other files; link to
   IDEAS.md instead.
+- **Every station includes its public toilets** as `toilet` nodes in the
+  walking graph, with `paid`, `accessible` and `outside_gates` and a source
+  in `NOTES.md` under `## Toilets` ([SPEC 7, Toilets](docs/SPEC.md#toilets)).
+  The checker fails a `ready` station without them.
 - **Shell work** (CSS, JS, HTML, tools, docs) happens on its own branch, not
   on a station branch. Keep `docs/SPEC.md`, the template station and the
   checker in step with any contract change.

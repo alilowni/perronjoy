@@ -36,9 +36,21 @@ surfaces (1, the island 2/3, and 4) and one tunnel under the tracks.
 - City side (left): canal (Singel), Stationsplein with bike parking, five city blocks.
 - Far side (right): a road, a park (Stadspark), four city blocks.
 
+## Toilets
+
+One line per public toilet: id, where, level, source, `paid`, `accessible`,
+`outside_gates`, and VERIFY on anything a source does not confirm.
+
+- `wc-hall`: the toilets in the station hall, by the entrance on the
+  Stationsplein; level `tunnel` (the hall floor). Source 1. paid: yes;
+  accessible: yes (wheelchair toilet); outside_gates: yes (the hall lies
+  outside the gates). Verified (fictional).
+
 ## Decisions
 
 - The stairs sit in the middle of each platform because the tunnel is there.
+- The toilet node sits in the hall, clear of the hall labels and the badges;
+  the shell draws its WC marker.
 
 ## VERIFY
 

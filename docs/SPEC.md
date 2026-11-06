@@ -68,9 +68,9 @@ around it inside your folder when you can.
 
 ```
 site/stations/<id>/
-  station.json   facts, walking graph, sample arrivals and departures
+  station.json   facts, walking graph (with the toilets), sample arrivals and departures
   scene.svg      the drawing
-  NOTES.md       sources, facts, scale, surroundings, decisions, VERIFY, shell issues
+  NOTES.md       sources, facts, scale, surroundings, toilets, decisions, VERIFY, shell issues
 ```
 
 `<id>` is fixed: `utrecht-centraal`, `amsterdam-centraal`, `rotterdam-centraal`,
@@ -79,7 +79,8 @@ Replace it.
 
 Start from [`site/stations/_template/`](../site/stations/_template/). It is a
 small fictional station that follows every rule. Copy the headings of its
-`NOTES.md`; the checker requires them.
+`NOTES.md`; the checker requires them. Every station includes its public
+toilets: see [Toilets](#toilets) in section 7.
 
 ## 4. What the shell draws for you
 
@@ -91,6 +92,8 @@ You do **not** draw these. The shared script adds them from your files:
 - Tiny people on the platforms.
 - Trains, standing at the right place and moving in or out.
 - The walking route, its step markers, and the start and end markers.
+- A small WC marker at every toilet node, and the route via a toilet when the
+  traveller turns on "WC onderweg" (see [Toilets](#toilets)).
 - The green "your platform" glow and the blue "arrival platform" tint.
 - The fog at the top and bottom, the north arrow, the "towards …" labels.
 - The transfer panel, the step list, the departures list, list mode, both
@@ -247,8 +250,9 @@ for a full example.
     { "id": "7" }
   ],
 
-  "nodes": [ ... ],                  // walking graph, see 7
+  "nodes": [ ... ],                  // walking graph with the toilets, see 7
   "edges": [ ... ],
+  "no_toilets": false,               // optional; true only when the station has no public toilet (see 7)
 
   "arrivals":   [ ... ],             // sample data, see 8
   "departures": [ ... ],
@@ -279,7 +283,7 @@ edges. The cost is seconds.
 ```
 
 - `kind`: `platform`, `stairs`, `escalator`, `lift`, `ramp`, `passage`,
-  `hall`, `exit`, `waypoint`.
+  `hall`, `exit`, `waypoint`, `toilet` (see [Toilets](#toilets)).
 - **Platform nodes** have the fixed id `p<platform><section>`: `p5a`, `p5b`,
   or `p7` when the platform has no sections. One per section. Place it on the
   platform surface, in the middle of that section. The arriving train stops
@@ -313,6 +317,69 @@ edges. The cost is seconds.
 - Model the real connections: the real stairs in their real places to the
   real passage. A long detour in reality is a long detour here too.
 - Keep it small: usually 2–5 nodes per platform plus the passages.
+
+### Toilets
+
+Every station shows where its public toilets are, and the shell can route a
+traveller via a toilet on the way to the next train. Toilets are a fixed part
+of every station build.
+
+```jsonc
+{ "id": "wc-hall", "kind": "toilet", "level": "hall",
+  "label": { "nl": "de toiletten in de stationshal, bij uitgang Centrum",
+             "en": "the toilets in the station hall, near the Centrum exit" },
+  "paid": true, "accessible": true, "outside_gates": false }
+```
+
+- One `toilet` node per toilet block. Start the id with `wc-`.
+- `label`: where it is, as a target in a sentence ("walk to …"): lowercase,
+  with the article, and a landmark a stranger can find. No `short`.
+- Three required booleans:
+  - `paid`: you pay to get in (NS toilets at large stations are SANIFAIR,
+    with staff and a fee);
+  - `accessible`: there is a wheelchair toilet;
+  - `outside_gates`: you reach it only after checking out at the gates, so
+    you check out and in again.
+- Put the node at its real position and on its real level. Give it a
+  `node-<id>` circle in `scene.svg`, like every node, and connect it with real
+  `walk`, `stairs`, `escalator` or `lift` edges at the speeds above.
+- Do not draw a toilet sign in `scene.svg`. The shell draws the WC marker (a
+  small rounded square with "WC") at the node, above the scene and below the
+  route. Keep the circle off the platform number badges: the checker warns,
+  and the shell moves a marker aside when it would cover one.
+- Which toilets: only public toilets that a traveller can use at the station,
+  in halls, in tunnels, on platforms, or just outside the gates (then
+  `outside_gates: true`). Not customer-only toilets in restaurants, shops or
+  lounges, not staff toilets, and at an airport not the airside toilets
+  behind passport or security control.
+- A route never passes through a toilet node: it is a destination, never a
+  shortcut between two other nodes.
+- Every toilet must be reachable from every platform node. The checker gives
+  an ERROR when one is not.
+- A `ready` station needs at least one toilet node. The only exception is
+  `"no_toilets": true` in `station.json`, with the reason in `NOTES.md` under
+  `## Toilets`.
+- `NOTES.md` has a `## Toilets` section: one line per toilet with its id,
+  where it is, its level, its source, `paid`, `accessible`, `outside_gates`,
+  and a VERIFY mark on everything a source does not confirm. Good sources:
+  OpenStreetMap `amenity=toilets` (with `level`, `fee` or `charge`,
+  `wheelchair`, `access`, `opening_hours`), the NS station page, Wikipedia NL
+  and the station operator's site. The gate side comes from the OSM
+  `barrier=turnstile` lines or the NS station map.
+
+What the shell does with them:
+
+- **WC onderweg** ("Toilet on the way") in the transfer card. When it is on,
+  the route goes from the arrival via the toilet that gives the shortest total
+  walk to the next train, and the URL gets `via=wc`. Without a next train
+  (`to=none`) the route goes to the nearest toilet.
+- The steps say "Loop naar <label>", then "Toiletbezoek, ongeveer 3 min"
+  with notes for a paid toilet, a wheelchair toilet and a toilet outside the
+  gates ("buiten de poortjes: uit- en weer inchecken"), then the way on.
+- The verdict counts the walk plus the toilet stop. The stop is the constant
+  `TOILET_STOP_MIN` in `site/js/site.js`: **3 minutes**.
+- List mode has a "Toiletten" section: every toilet, its flags, and the
+  walking time from the arrival platform.
 
 ## 8. Sample arrivals and departures
 
@@ -363,9 +430,12 @@ The map is schematic but true. These must match reality:
 5. The compass direction (`north_deg`).
 6. The approximate platform length.
 7. Which side the city centre, the main square and the main surroundings are on.
+8. Where the public toilets are, on which level, and whether they are paid,
+   accessible and outside the gates (see [Toilets](#toilets)).
 
 These may be simplified: platform widths, track curves outside the station,
 shops, exits that play no role in a transfer, the exact shape of buildings.
+Toilet positions are facts: give each one a source, or mark it VERIFY.
 
 Write every fact and its source in `NOTES.md`. Good sources: the NS station
 page and station map (*plattegrond*), OpenStreetMap (platform `ref` and
@@ -409,6 +479,7 @@ npm run smoke -- <id>        # browser test: route, train, languages, themes, li
 npm run shots -- <id>        # PNG screenshots in tools/out/
 npm run shots -- <id> --theme dark --lang en
 npm run shots -- <id> --from <platform> --to <platform>
+npm run shots -- <id> --via wc   # the route via the toilet
 ```
 
 (Without npm: `node tools/check-station.mjs <id>`, `node tools/smoke.mjs <id>`,
@@ -420,6 +491,8 @@ and check with your own eyes:
 - Platform numbers read left to right and match reality.
 - The arriving train stands next to its platform node.
 - The route follows real stairs and passages and never cuts across tracks.
+- Every WC marker sits on a real toilet and covers no badge; the `--via wc`
+  route and its steps make sense.
 - The steps make sense to someone who has never been in the station.
 - The surroundings sit on the correct side and look calm in both themes.
 - Nothing hides under the "towards …" labels, the north arrow or the toggle.
@@ -435,6 +508,9 @@ Run `npm run serve` and watch the arriving train come in once with motion on.
 - [ ] `npm run smoke -- <id>` passes.
 - [ ] Every platform is in `platforms`, in real order.
 - [ ] Every passage, hall and bridge used for transfers is drawn and in the graph.
+- [ ] Every public toilet is a `toilet` node with its three flags, reachable
+      from every platform, and listed with a source under `## Toilets` in
+      `NOTES.md`; the `--via wc` screenshots look right.
 - [ ] Real surroundings on the correct sides, at least 4 kinds, 2–5 labelled.
 - [ ] Every label has `data-en`; every JSON text has `nl` and `en`.
 - [ ] No colours in the SVG; the dark screenshot looks right.
