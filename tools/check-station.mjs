@@ -192,7 +192,11 @@ function checkStation(id) {
   }
   nodes.forEach((n) => { if (!circles[n.id]) err(`scene.svg needs <circle id="node-${n.id}" cx=".." cy=".."> for node "${n.id}"`); });
   Object.keys(circles).forEach((k) => { if (!nodeMap[k]) warn(`scene.svg has node-${k} that station.json does not use`); });
-  for (const m of svg.matchAll(/<g[^>]*id="layer-[^"]+"[^>]*transform=/g)) err(`layer group has a transform attribute: ${m[0].slice(0, 60)}… (not allowed)`);
+  // The shell reads plain coordinates: no transform on a layer group, platform rect or node circle (SPEC 5.2).
+  for (const m of svg.matchAll(/<(g|rect|circle)\s([^>]*)>/g)) {
+    const idm = m[2].match(/(?:^|\s)id="((?:layer|platform|node)-[^"]+)"/);
+    if (idm && /(?:^|\s)transform=/.test(m[2])) err(`${idm[1]} has a transform attribute; the shell reads plain coordinates, so use none on layer groups, platform rects and node circles (SPEC 5.2)`);
+  }
   edges.forEach((e, i) => {
     const a = circles[e.from], b = circles[e.to];
     if (!a || !b || e.kind !== 'walk') return;
