@@ -59,11 +59,13 @@ These rules are the same in all four prompts. Do not bend them.
 Do not touch anything else: not `site/*.html`, `site/css/`, `site/js/`,
 `site/stations/index.json`, `site/stations/_template/`, `tools/`, `docs/`,
 `README.md`, `AGENTS.md`, `CLAUDE.md`, `package.json`, `.github/`, or another
-station's folder. Do not add packages, build steps, fonts, images or styles.
+station's folder. The one exception is `ISSUES.md`: you may add lines to it.
+Do not add packages, build steps, fonts, images or styles.
 If the shell has a bug or misses something you need, write it in `NOTES.md`
-under **Shell issues** and in your final message, then work around it inside
-your folder. Never fix the shell on your branch: four branches changing the
-shell at once cannot merge.
+under **Shell issues**, add one line at the end of `ISSUES.md`
+(`- [shell] problem`), and mention it in your final message; then work around
+it inside your folder. Never fix the shell on your branch: four branches
+changing the shell at once cannot merge.
 
 **Truth.** The map is schematic but true ([SPEC 9](../SPEC.md#9-realism-what-must-be-true)).
 Platform numbers, their order, islands, the position and level of passages
@@ -164,9 +166,11 @@ verified, what is marked `VERIFY`, and what you could not do.
 - Platform tracks: about **13 platform tracks with numbers between 1 and 16**;
   some numbers have no platform. Get the exact list and the islands from the
   NS map or OpenStreetMap.
-- Which side holds spoor 1: likely the south (hall) side. If so, screen-up is
-  west, `north_deg` is `90`, the **top** end is west and the **bottom** end is
-  east. Verify before you rotate.
+- Which side holds the lowest number: the south (hall) side, where track 1
+  was removed in 2018 and track 2 has the side platform. The tracks run at
+  about 72° / 252°, so screen-up is west-south-west and `north_deg` is about
+  `108`; the **top** end is west and the **bottom** end is east. Verify before
+  you rotate.
 - Whether there is one passage under the tracks or more.
 - Which platforms the international trains normally use.
 - Which end is section **a**.
@@ -185,8 +189,9 @@ verified, what is marked `VERIFY`, and what you could not do.
 - **South (city side):** Stationsplein as a `square`, with the tram stops on
   it as `road` and `road-line`; Weena as a wide `road` running east–west in
   front of the station; Kruisplein as a `square` to the south-west; the
-  Delftse Poort towers as `block block--tall` to the west; the
-  Groothandelsgebouw as a large `block` to the east; a few more city blocks.
+  Groothandelsgebouw as a large `block` to the west of the square; the
+  Delftse Poort towers as `block block--tall` to the east of it; a few more
+  city blocks.
 - **North:** Proveniersplein as a `square`; the Provenierswijk as a few
   `block` shapes.
 - **Bicycle parking:** the large bicycle parking under Stationsplein as

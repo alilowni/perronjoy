@@ -177,18 +177,18 @@
     if (!mapWrap) return;
     const id = qs.get('station') || '';
     try { S.index = await loadJSON('stations/index.json'); }
-    catch (e) { showNote(t('error.load')); return; }
+    catch (e) { showNote('error.load'); return; }
     S.entry = S.index.stations.find((s) => s.id === id) || null;
     buildStationNav();
-    if (!/^[a-z0-9_-]+$/i.test(id)) { showNote(t('error.notFound')); setTitle(t('app.name')); return; }
+    if (!/^[a-z0-9_-]+$/i.test(id)) { showNote('error.notFound'); setTitle(t('app.name')); return; }
     if (S.entry) setTitle(S.entry.name);
     try { S.data = await loadJSON('stations/' + id + '/station.json'); }
-    catch (e) { showNote(S.entry ? t('error.load') : t('error.notFound')); setTitle(t('app.name')); return; }
+    catch (e) { showNote(S.entry ? 'error.load' : 'error.notFound'); setTitle(t('app.name')); return; }
     if (S.data.name) setTitle(S.data.name);
     if (S.data.status === 'placeholder' || !Array.isArray(S.data.platforms) || !S.data.platforms.length) { showPlaceholder(); return; }
     let svgText;
     try { svgText = await loadText('stations/' + id + '/scene.svg'); }
-    catch (e) { showNote(t('error.load')); return; }
+    catch (e) { showNote('error.load'); return; }
 
     prepareData();
     injectScene(svgText);
@@ -222,8 +222,9 @@
     const h = $('#station-name'); if (h) h.textContent = name;
     document.title = name + ' · ' + t('app.name');
   }
-  function showNote(text) {
-    $('#map').appendChild(el('div', { class: 'map-note', text }));
+  function showNote(key) {
+    // data-i18n lets the language switch translate the note too
+    $('#map').appendChild(el('div', { class: 'map-note', 'data-i18n': key, text: t(key) }));
     $('#side').hidden = true;
     document.documentElement.dataset.pjState = 'error';
   }
@@ -286,6 +287,7 @@
       const group = svgEl('g', { class: 'shadows', 'aria-hidden': 'true' });
       $$('.block, .building, .tree, .platform', layer).forEach((src) => {
         if (src.tagName.toLowerCase() === 'g') return;
+        if (/^platform-\d+[a-z]$/.test(src.id)) return; // a section rect lies on its platform, which already casts the shadow
         const cls = src.classList;
         const off = cls.contains('block--tall') ? SHADOW_OFFSETS['block--tall']
           : cls.contains('building') ? SHADOW_OFFSETS.building
@@ -423,7 +425,7 @@
 
   function buildNorth() {
     const deg = Number((S.data.orientation || {}).north_deg) || 0;
-    $('#map').appendChild(el('div', { class: 'north', title: t('map.north'), 'aria-hidden': 'true' }, [
+    $('#map').appendChild(el('div', { class: 'north', title: t('map.north'), 'data-i18n-title': 'map.north', 'aria-hidden': 'true' }, [
       el('span', { class: 'arrow', text: '↑', style: 'transform: rotate(' + deg + 'deg)' }),
       el('span', { text: 'N' })
     ]));
@@ -483,10 +485,16 @@
   }
   function select(kind, rec) {
     if (!rec) return;
-    if (kind === 'from') S.from = rec; else S.to = rec;
+    if (kind === 'from') {
+      // The map shows the train you arrive with: the old arrival leaves the map, the new one comes in.
+      const old = S.from && S.trains[S.from.id];
+      if (old && old.kind === 'arr') { if (old.cancel) old.cancel(); old.g.remove(); delete S.trains[S.from.id]; }
+      S.from = rec;
+    } else S.to = rec;
     computeRoute();
     updateUrl();
     renderAll({ animate: true });
+    if (kind === 'from') playArrival();
     if (S.mode === 'map') frame('transfer');
   }
 
@@ -587,10 +595,12 @@
     steps.push({ key: 'start', text: t('step.getOff', { pf: platformLabel(from.platform, from.section) }), node: route.nodes[0] });
     if (route.same) { steps.push({ key: 'end', text: t('transfer.same'), node: route.nodes[0] }); return steps; }
     let carry = 0;
+    let prev = S.nodes[route.nodes[0]]; // the last node that is not a waypoint: a waypoint only bends the line
     for (let i = 0; i < route.edges.length; i++) {
       const u = S.nodes[route.nodes[i]], v = S.nodes[route.nodes[i + 1]], e = route.edges[i];
       carry += Number(e.seconds) || 0;
       if (v.kind === 'waypoint') continue;
+      const from = prev; prev = v;
       const isLast = i === route.edges.length - 1;
       const lu = S.levelPos[u.level] || 0, lv = S.levelPos[v.level] || 0;
       const label = nodeLabel(v);
@@ -598,7 +608,7 @@
       let text;
       if (kind === 'walk' || lu === lv) {
         if (v.kind === 'hall' || v.kind === 'passage') text = t('step.walkThrough', { x: label });
-        else if (u.kind === 'platform' && v.kind !== 'platform') text = t('step.walkAlong', { x: label });
+        else if (from.kind === 'platform' && v.kind !== 'platform' && (S.levelPos[from.level] || 0) === lv) text = t('step.walkAlong', { x: label });
         else text = t('step.walkTo', { x: label });
       } else {
         const up = lv > lu;
@@ -918,7 +928,7 @@
   /* ---------- boot ---------- */
   document.addEventListener('DOMContentLoaded', () => {
     initIndex().catch((e) => console.error(e));
-    initStation().catch((e) => { console.error(e); const m = $('#map'); if (m) showNote(t('error.load')); });
+    initStation().catch((e) => { console.error(e); const m = $('#map'); if (m) showNote('error.load'); });
   });
 
   window.Perronjoy = { state: S, frame, select };

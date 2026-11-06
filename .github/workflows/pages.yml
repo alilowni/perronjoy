@@ -7,10 +7,10 @@ on:
   pull_request:
   workflow_dispatch:
 
+# Least privilege: the pull request check runs the branch's own code, so only
+# the deploy job gets the Pages and OIDC token permissions.
 permissions:
   contents: read
-  pages: write
-  id-token: write
 
 concurrency:
   group: pages-${{ github.ref }}
@@ -31,6 +31,10 @@ jobs:
     needs: check
     if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}

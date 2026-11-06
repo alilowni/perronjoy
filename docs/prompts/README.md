@@ -23,7 +23,12 @@ stations are in [IDEAS.md](../../IDEAS.md).
 
 ## How to use a prompt
 
-1. Start an agent on a fresh branch from `main`.
+1. Start an agent on a fresh branch from `main`. Give its environment web
+   access to the sources the prompt asks for: `www.ns.nl`,
+   `www.openstreetmap.org`, `api.openstreetmap.org`, `overpass-api.de`,
+   `nl.wikipedia.org`, `www.prorail.nl` and `api.pdok.nl` (ProRail open
+   data). Without them the agent falls back to search excerpts and marks much
+   more as VERIFY, as Utrecht and Rotterdam did.
 2. Paste the whole prompt file as the first message.
 3. When the agent is done, run `npm run check -- <id>` and
    `npm run smoke -- <id>` on the branch, and look at the screenshots.

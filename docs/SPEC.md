@@ -138,8 +138,10 @@ You draw only the station itself and its surroundings.
   platform area, same class. If present, the shell highlights the section.
 - A track centreline is **one `<path>`** with `id="track-N"`, one per
   platform number, running the full height of the scene, next to its
-  platform. Tracks without a platform may use `id="track-x-N"`; the shell
-  draws rails for every path whose id starts with `track-`.
+  platform. A dead-end track (*kopspoor*) starts or ends at its buffer stop
+  instead; its trains enter and leave at the open end only. Tracks without a
+  platform may use `id="track-x-N"`; the shell draws rails for every path
+  whose id starts with `track-`.
 - Node circles: `<circle id="node-ID" cx=".." cy=".." r="1"/>`. The id after
   `node-` must match a node in `station.json`.
 
@@ -148,7 +150,9 @@ You draw only the station itself and its surroundings.
 Colours come only from `site/css/site.css`, through these classes. This is
 what makes the dark theme work. **Never** put a colour in the SVG: no
 `fill="#…"`, no `stroke="red"`, no `style="fill:…"`, no `<style>`. The checker
-rejects them. `fill="none"` is allowed.
+rejects them. `fill="none"` is allowed, but it has no effect on a shape
+with one of these classes: the class sets the fill and wins over the
+attribute, so `fill="none"` cannot turn a classed shape into an outline.
 
 | class | use |
 |---|---|
@@ -169,7 +173,8 @@ rejects them. `fill="none"` is allowed.
 | `label`, `label label--muted`, `label label--water` | text; `font-size` in scene units (3–6) |
 
 Allowed elements: `rect`, `path`, `circle`, `ellipse`, `line`, `polygon`,
-`polyline`, `text`, `g`. Not allowed: `script`, `style`, `image`,
+`polyline`, `text`, `g`, and one `title` with the station name (see the
+template). Not allowed: `script`, `style`, `image`,
 `foreignObject`, `tspan`, external URLs, fonts, filters, raster data.
 
 ### 5.4 Labels in two languages
@@ -225,11 +230,11 @@ for a full example.
   "city": "Utrecht",
   "status": "ready",                 // "draft" while working, "ready" when done
 
-  "orientation": { "north_deg": 0 }, // see 5.1
+  "orientation": { "north_deg": 210 }, // see 5.1; Utrecht is drawn turned, north points down-left
 
   "ends": {                          // what lies beyond each end of the tracks
-    "top":    { "towards": { "nl": "Amsterdam, Amersfoort", "en": "Amsterdam, Amersfoort" } },
-    "bottom": { "towards": { "nl": "...", "en": "..." } }
+    "top":    { "towards": { "nl": "'s-Hertogenbosch, Arnhem", "en": "'s-Hertogenbosch, Arnhem" } },
+    "bottom": { "towards": { "nl": "Amsterdam, Gouda, Zwolle", "en": "Amsterdam, Gouda, Zwolle" } }
   },
 
   "levels": [                        // position: 0 = platform level, 1 = above, -1 = below
@@ -301,7 +306,9 @@ edges. The cost is seconds.
 - `seconds` is the time for a hurried traveller with a bag:
   - on a platform: about **1.2 m/s** (50 m ≈ 40 s)
   - in a busy hall or tunnel: about **1.0 m/s**
-  - stairs: 20 s down, 30 s up; escalator: 30 s; lift: 60–90 s with waiting
+  - stairs: 20 s down, 30 s up; escalator: 30 s; lift: 60–90 s with waiting.
+    An edge has one `seconds` for both directions, so give stairs one value
+    between 20 and 30 s.
 - Every platform node must reach every other platform node.
 - Model the real connections: the real stairs in their real places to the
   real passage. A long detour in reality is a long detour here too.
@@ -318,7 +325,7 @@ edges. The cost is seconds.
 "departures": [
   { "id": "dep-spr-5631", "train": { "type": "Sprinter", "number": "5631" },
     "destination": "Amersfoort Schothorst", "platform": "12", "section": "a",
-    "to_end": "top", "in_min": 6, "status": "on_time", "delay_min": 0, "length_m": 100 }
+    "to_end": "bottom", "in_min": 6, "status": "on_time", "delay_min": 0, "length_m": 100 }
 ]
 ```
 
@@ -337,7 +344,10 @@ edges. The cost is seconds.
   different platforms, with at most one `delayed` departure.
 - The default "your train" is the soonest departure on another platform
   than the arrival. Make that a realistic, comfortable transfer. Also include
-  one departure that makes a tight transfer.
+  one departure that makes a tight transfer. Because of that rule, the tight
+  one must leave from the arrival's own platform number (the other section),
+  or leave after the default with a longer walk; a sooner departure on
+  another platform would become the default.
 - Use real train numbers when you know them. If not, use a plausible number
   and say so in `NOTES.md`.
 

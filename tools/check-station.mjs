@@ -19,6 +19,7 @@ const STATUSES = ['placeholder', 'draft', 'ready'];
 const SCENE_CLASSES = new Set(['ground', 'block', 'block--tall', 'roof', 'building', 'square', 'road', 'road-line', 'park', 'water', 'tree', 'bike',
   'platform', 'passage', 'passage--above', 'stairs', 'stairs-line', 'label', 'label--muted', 'label--water']);
 const SURROUNDING_CLASSES = ['block', 'building', 'square', 'road', 'park', 'water', 'tree', 'bike'];
+const SCENE_ELEMENTS = new Set(['svg', 'title', 'g', 'rect', 'path', 'circle', 'ellipse', 'line', 'polygon', 'polyline', 'text']);
 
 const args = process.argv.slice(2);
 const ids = !args.length || args.includes('--all')
@@ -168,12 +169,27 @@ function checkStation(id) {
   if (/<image|<foreignObject/i.test(svg)) err('scene.svg must not contain <image> or <foreignObject>');
   if (/href="https?:/i.test(svg)) err('scene.svg must not reference external URLs');
   if (/<style/i.test(svg)) err('scene.svg must not contain <style>; colours come from site/css/site.css (SPEC 5.3)');
+  const otherElements = new Set();
+  for (const m of svg.matchAll(/<([a-zA-Z][\w:-]*)/g)) if (!SCENE_ELEMENTS.has(m[1]) && !['script', 'style', 'image', 'foreignObject', 'tspan'].includes(m[1])) otherElements.add(m[1]);
+  if (otherElements.size) err(`scene.svg uses <${[...otherElements].join('>, <')}>; allowed elements are ${[...SCENE_ELEMENTS].join(', ')} (SPEC 5.3)`);
   ['layer-ground', 'layer-tracks', 'layer-platforms', 'layer-nodes'].forEach((l) => { if (!new RegExp(`id="${l}"`).test(svg)) err(`scene.svg needs a group with id="${l}"`); });
+  // The layer order is fixed (SPEC 5.2): a group out of place is painted above or below the wrong things.
+  const LAYER_ORDER = ['layer-ground', 'layer-passages', 'layer-tracks', 'layer-platforms', 'layer-buildings', 'layer-labels', 'layer-nodes'];
+  const layerAt = LAYER_ORDER.map((l) => [l, svg.search(new RegExp(`<g[^>]*\\sid="${l}"`))]).filter(([, i]) => i >= 0);
+  if (layerAt.some(([, i], k) => k > 0 && i < layerAt[k - 1][1])) err(`the layer groups are out of order (${layerAt.slice().sort((a, b) => a[1] - b[1]).map(([l]) => l).join(', ')}); keep them as ${LAYER_ORDER.join(', ')} (SPEC 5.2)`);
   const ids = new Set(); for (const m of svg.matchAll(/\sid="([^"]+)"/g)) { if (ids.has(m[1])) err(`duplicate id "${m[1]}" in scene.svg`); ids.add(m[1]); }
   platforms.forEach((p) => {
     if (!new RegExp(`<path[^>]*id="track-${p.id}"`).test(svg) && !new RegExp(`id="track-${p.id}"[^>]*>`).test(svg)) err(`scene.svg needs <path id="track-${p.id}">`);
     if (!new RegExp(`<rect[^>]*id="platform-${p.id}"`).test(svg) && !new RegExp(`id="platform-${p.id}"[^>]*/?>`).test(svg)) err(`scene.svg needs <rect id="platform-${p.id}" class="platform">`);
   });
+  // Tracks run from the top of the scene to the bottom (SPEC 5.1); a reversed path swaps the ends for every train on it.
+  for (const m of svg.matchAll(/<path([^>]*)>/g)) {
+    const tid = m[1].match(/\sid="(track-[^"]+)"/), d = m[1].match(/\sd="([^"]+)"/);
+    if (!tid || !d) continue;
+    const ends = pathEnds(d[1]);
+    if (!ends) warn(`${tid[1]}: the checker cannot read its path; make sure it runs from the top of the scene to the bottom (SPEC 5.1)`);
+    else if (ends.last.y <= ends.first.y) err(`${tid[1]} runs from bottom to top; draw it from the top of the scene to the bottom, or its trains enter and leave at the wrong end (SPEC 5.1)`);
+  }
   const circles = {};
   for (const m of svg.matchAll(/<circle([^>]*)\/?>/g)) {
     const attrs = m[1];
@@ -184,7 +200,23 @@ function checkStation(id) {
   }
   nodes.forEach((n) => { if (!circles[n.id]) err(`scene.svg needs <circle id="node-${n.id}" cx=".." cy=".."> for node "${n.id}"`); });
   Object.keys(circles).forEach((k) => { if (!nodeMap[k]) warn(`scene.svg has node-${k} that station.json does not use`); });
-  for (const m of svg.matchAll(/<g[^>]*id="layer-[^"]+"[^>]*transform=/g)) err(`layer group has a transform attribute: ${m[0].slice(0, 60)}… (not allowed)`);
+  // A platform node lies on its platform: the arriving train stops next to it (SPEC 7).
+  const platformRects = {};
+  for (const m of svg.matchAll(/<rect\s([^>]*)>/g)) {
+    const idm = m[1].match(/(?:^|\s)id="platform-(\d+)"/); if (!idm) continue;
+    const num = (k) => parseFloat((m[1].match(new RegExp(`(?:^|\\s)${k}="([-\\d.]+)"`)) || [])[1]);
+    platformRects[idm[1]] = { x: num('x'), y: num('y'), w: num('width'), h: num('height') };
+  }
+  nodes.forEach((n) => {
+    const c = circles[n.id], r = n.kind === 'platform' && platformRects[String(n.platform)];
+    if (!c || !r || [r.x, r.y, r.w, r.h].some(Number.isNaN)) return;
+    if (c.x < r.x || c.x > r.x + r.w || c.y < r.y || c.y > r.y + r.h) warn(`platform node "${n.id}" (${c.x}, ${c.y}) lies outside platform-${n.platform}; the arriving train stops beside its platform (SPEC 7)`);
+  });
+  // The shell reads plain coordinates: no transform on a layer group, platform rect or node circle (SPEC 5.2).
+  for (const m of svg.matchAll(/<(g|rect|circle)\s([^>]*)>/g)) {
+    const idm = m[2].match(/(?:^|\s)id="((?:layer|platform|node)-[^"]+)"/);
+    if (idm && /(?:^|\s)transform=/.test(m[2])) err(`${idm[1]} has a transform attribute; the shell reads plain coordinates, so use none on layer groups, platform rects and node circles (SPEC 5.2)`);
+  }
   edges.forEach((e, i) => {
     const a = circles[e.from], b = circles[e.to];
     if (!a || !b || e.kind !== 'walk') return;
@@ -202,11 +234,15 @@ function checkStation(id) {
   if (/<tspan/i.test(svg)) err('scene.svg uses <tspan>; use one <text> per line so the language switch works (SPEC 5.4)');
 
   // Themes: colours come from classes (SPEC 5.3).
-  for (const m of svg.matchAll(/\s(fill|stroke)="(#[0-9a-f]{3,8}|rgb[^"]*|hsl[^"]*|[a-z]+)"/gi)) {
+  for (const m of svg.matchAll(/\s(fill|stroke|color|stop-color|flood-color|lighting-color)="(#[0-9a-f]{3,8}|rgb[^"]*|hsl[^"]*|[a-z]+)"/gi)) {
     if (['none', 'currentcolor', 'transparent'].includes(m[2].toLowerCase())) continue;
     err(`hard-coded ${m[1]}="${m[2]}" breaks the dark theme; use a class (SPEC 5.3)`);
   }
   if (/style="[^"]*(fill|stroke|color)\s*:/i.test(svg)) err('inline style with a colour breaks the dark theme; use a class (SPEC 5.3)');
+  for (const m of svg.matchAll(/\s([\w-]+)="\s*url\(/gi)) if (m[1].toLowerCase() !== 'filter') err(`${m[1]}="url(…)" points to a gradient or pattern, which carries its own colours; use a class (SPEC 5.3)`);
+  if (/style="[^"]*url\(/i.test(svg)) err('inline style with url(…) is not allowed; use a class (SPEC 5.3)');
+  if (/\sfilter="|style="[^"]*filter\s*:/i.test(svg)) err('scene.svg uses a filter; filters are not allowed (SPEC 5.3)');
+  if (/\sfont-family="|font-family\s*:/i.test(svg)) err('scene.svg sets font-family; fonts are not allowed, the shell sets the font (SPEC 5.3)');
   const unknown = new Set();
   for (const m of svg.matchAll(/\sclass="([^"]+)"/g)) m[1].split(/\s+/).forEach((c) => { if (c && !SCENE_CLASSES.has(c)) unknown.add(c); });
   if (unknown.size) warn(`unknown class(es) ${[...unknown].join(', ')}: they get no colour in either theme (SPEC 5.3)`);
@@ -214,8 +250,13 @@ function checkStation(id) {
   // Surroundings: enough context to look real (SPEC 5.5).
   const groundMatch = svg.match(/<g[^>]*id="layer-ground"[^>]*>([\s\S]*?)<\/g>/);
   const ground = groundMatch ? groundMatch[1] : '';
+  // Count whole class names: `road-line` is not a `road`, `block--tall` comes with `block`.
   const counts = {};
-  SURROUNDING_CLASSES.forEach((c) => { counts[c] = (ground.match(new RegExp(`class="[^"]*\\b${c}\\b[^"]*"`, 'g')) || []).length; });
+  SURROUNDING_CLASSES.forEach((c) => { counts[c] = 0; });
+  for (const m of ground.matchAll(/\sclass="([^"]+)"/g)) {
+    const list = m[1].split(/\s+/);
+    SURROUNDING_CLASSES.forEach((c) => { if (list.includes(c)) counts[c] += 1; });
+  }
   const total = Object.values(counts).reduce((a, b) => a + b, 0);
   const kinds = Object.values(counts).filter((n) => n > 0).length;
   if (total < 15) warn(`only ${total} surrounding shapes in layer-ground; aim for 15–80 (SPEC 5.5)`);
@@ -238,4 +279,27 @@ function checkStation(id) {
 function levelPos(levels, levelId) {
   const l = levels.find((x) => x.id === (levelId || 'platform'));
   return l ? Number(l.position) : 0;
+}
+
+/* First and last point of an SVG path (absolute and relative commands). Returns null if it cannot read it. */
+function pathEnds(d) {
+  const ARGS = { m: 2, l: 2, h: 1, v: 1, c: 6, s: 4, q: 4, t: 2, a: 7, z: 0 };
+  const tokens = d.match(/[a-df-z]|[-+]?(?:\d+\.?\d*|\.\d+)(?:e[-+]?\d+)?/gi) || [];
+  let x = 0, y = 0, sx = 0, sy = 0, first = null, cmd = null;
+  for (let i = 0; i < tokens.length;) {
+    if (/^[a-z]$/i.test(tokens[i])) {
+      cmd = tokens[i++];
+      if (cmd.toLowerCase() === 'z') { x = sx; y = sy; cmd = null; continue; }
+    } else if (!cmd) return null;
+    const c = cmd.toLowerCase(), rel = cmd === c, n = ARGS[c];
+    if (!n) return null;
+    const v = tokens.slice(i, i + n).map(Number);
+    if (v.length < n || v.some(Number.isNaN)) return null;
+    i += n;
+    if (c === 'h') x = rel ? x + v[0] : v[0];
+    else if (c === 'v') y = rel ? y + v[0] : v[0];
+    else { x = rel ? x + v[n - 2] : v[n - 2]; y = rel ? y + v[n - 1] : v[n - 1]; }
+    if (c === 'm') { if (!first) first = { x, y }; sx = x; sy = y; cmd = rel ? 'l' : 'L'; } // extra pairs after M are lines
+  }
+  return first ? { first, last: { x, y } } : null;
 }
