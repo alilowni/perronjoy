@@ -169,7 +169,8 @@ rejects them. `fill="none"` is allowed.
 | `label`, `label label--muted`, `label label--water` | text; `font-size` in scene units (3–6) |
 
 Allowed elements: `rect`, `path`, `circle`, `ellipse`, `line`, `polygon`,
-`polyline`, `text`, `g`. Not allowed: `script`, `style`, `image`,
+`polyline`, `text`, `g`, and one `title` with the station name (see the
+template). Not allowed: `script`, `style`, `image`,
 `foreignObject`, `tspan`, external URLs, fonts, filters, raster data.
 
 ### 5.4 Labels in two languages
