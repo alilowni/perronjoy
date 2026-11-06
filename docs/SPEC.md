@@ -96,8 +96,14 @@ You do **not** draw these. The shared script adds them from your files:
   traveller turns on "WC onderweg" (see [Toilets](#toilets)).
 - The green "your platform" glow and the blue "arrival platform" tint.
 - The fog at the top and bottom, the north arrow, the "towards …" labels.
-- The transfer panel, the step list, the departures list, list mode, both
-  languages and both themes.
+- The transfer panel with two search-and-select fields, "Je komt aan op" and
+  "Je volgende trein": tap one for the full list, or type a platform ("5",
+  "5b", "spoor 5"), a train number ("31" finds Intercity 3152) or a place
+  ("rotterdam", "parijs"). Platform matches come first; while the list is
+  open, the platform of the active option gets a quiet outline on the map.
+  The options come from your `arrivals`, `departures` and `platforms`.
+- The step list, the departures list, list mode, both languages and both
+  themes.
 
 You draw only the station itself and its surroundings.
 

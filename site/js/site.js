@@ -552,11 +552,210 @@
     if (S.mode === 'map') frame('transfer');
   }
 
-  function buildSelectors() {
-    const fromSel = $('#sel-from'), toSel = $('#sel-to');
-    fromSel.addEventListener('change', () => select('from', findRecord(S.arrivals, fromSel.value) || syntheticRecord('arr', fromSel.value)));
-    toSel.addEventListener('change', () => select('to', findRecord(S.departures, toSel.value) || syntheticRecord('dep', toSel.value)));
+  /* ---------- search and select: one field per choice (WAI-ARIA combobox with a listbox) ---------- */
+  const STOP_WORDS = new Set(['spoor', 'perron', 'platform', 'track', 'pf', 'uit', 'from', 'naar', 'to', 'trein', 'train']);
+  const ALIASES = [['the hague', 'den haag'], ['hague', 'haag'], ['paris', 'parijs'], ['brussels', 'brussel'], ['antwerp', 'antwerpen'],
+    ['cologne', 'keulen'], ['london', 'londen'], ['icd', 'intercity direct'], ['ic', 'intercity'], ['spr', 'sprinter']];
+  function normText(str) { return String(str || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase(); }
+  /* The words of a query: no accents, no case, no "spoor"/"platform"/…, English names to Dutch ones. */
+  function queryTokens(q) {
+    let n = ' ' + normText(q).replace(/([a-z]{2,})(\d)/g, '$1 $2').replace(/(\d)([a-z]{2,})/g, '$1 $2').replace(/[^a-z0-9]+/g, ' ') + ' ';
+    ALIASES.forEach(([from, to]) => { n = n.split(' ' + from + ' ').join(' ' + to + ' '); });
+    const out = [];
+    n.trim().split(/\s+/).forEach((tok) => {
+      if (!tok || STOP_WORDS.has(tok)) return;
+      if (/^[a-z]$/.test(tok) && out.length && /^\d+$/.test(out[out.length - 1])) out[out.length - 1] += tok; // "5 b" is "5b"
+      else out.push(tok);
+    });
+    return out;
   }
+  /* Does an option match every word? Returns null, or {platform: true} when a number matched its platform. */
+  function matchOption(opt, toks) {
+    let platform = false;
+    for (const tok of toks) {
+      if (/^\d+$/.test(tok)) {
+        const pf = opt.platform === tok, train = !!(opt.trainNo && opt.trainNo.startsWith(tok));
+        if (!pf && !train) return null;
+        if (pf) platform = true;
+      } else if (/^\d+[a-z]$/.test(tok)) {
+        if (opt.pfLabel !== tok) return null;
+        platform = true;
+      } else if (!opt.words.some((w) => w.startsWith(tok))) return null;
+    }
+    return { platform };
+  }
+
+  const combos = {};
+  function buildSelectors() {
+    ['from', 'to'].forEach((kind) => { combos[kind] = makeCombo(kind); });
+    document.addEventListener('pointerdown', (e) => {
+      Object.values(combos).forEach((c) => { if (c.isOpen() && !c.root.contains(e.target)) c.close(true); });
+    });
+  }
+  function makeCombo(kind) {
+    const input = $('#sel-' + kind), list = $('#list-' + kind), root = $('#combo-' + kind);
+    const clearBtn = root.querySelector('.combo-clear'), openBtn = root.querySelector('.combo-open'), status = $('#status-' + kind);
+    let options = [], shown = [], active = -1, open = false, current = null, statusTimer = 0;
+
+    const setExpanded = (v) => { input.setAttribute('aria-expanded', v ? 'true' : 'false'); openBtn.setAttribute('aria-expanded', v ? 'true' : 'false'); root.classList.toggle('is-open', v); };
+    const currentText = () => (current ? current.text : '');
+    const syncClear = () => { clearBtn.hidden = !(open && input.value); };
+    // Select the whole text so typing replaces it, with the caret at the start so the field shows the beginning.
+    const selectAll = () => { try { input.setSelectionRange(0, input.value.length, 'backward'); } catch (e) { input.select(); } input.scrollLeft = 0; };
+    function setOptions(opts, currentKey) {
+      options = opts;
+      current = opts.find((o) => o.key === currentKey) || null;
+      if (open) render(); else { input.value = currentText(); syncClear(); }
+    }
+    function filter() {
+      const q = input.value === currentText() ? '' : input.value;
+      const toks = queryTokens(q);
+      if (!toks.length) return options.slice();
+      const hits = [];
+      options.forEach((o, i) => { const m = matchOption(o, toks); if (m) hits.push({ o, i, pf: m.platform }); });
+      // Platform matches first, then the rest, each in list order.
+      hits.sort((x, y) => (x.pf === y.pf ? x.i - y.i : (x.pf ? -1 : 1)));
+      return hits.map((h) => h.o);
+    }
+    function render() {
+      shown = filter();
+      list.innerHTML = '';
+      if (!shown.length) {
+        list.appendChild(el('li', { class: 'combo-empty', role: 'option', 'aria-disabled': 'true', id: 'opt-' + kind + '-none', text: t('combo.noResult') }));
+        setActive(-1);
+      } else {
+        shown.forEach((o, i) => {
+          const li = el('li', { class: 'combo-opt' + (current && o.key === current.key ? ' is-current' : '') + (o.rec ? '' : ' is-plain'), role: 'option', id: 'opt-' + kind + '-' + i, 'aria-selected': 'false', 'aria-label': o.text + (o.when ? ' · ' + o.when : ''), 'data-key': o.key }, [
+            el('span', { class: 'pf' }, [el('small', { text: t('dep.pf') }), el('b', { text: o.pfLabel })]),
+            el('span', { class: 'txt' }, [el('span', { class: 'name', text: o.name }), o.detail ? el('span', { class: 'detail', text: o.detail }) : null]),
+            o.when ? el('span', { class: 'when', text: o.when }) : null
+          ]);
+          li.addEventListener('click', () => pick(i, true));
+          list.appendChild(li);
+        });
+        if (active >= shown.length) active = shown.length - 1;
+        setActive(active);
+      }
+      clearTimeout(statusTimer);
+      statusTimer = setTimeout(() => { status.textContent = !shown.length ? t('combo.noResult') : (shown.length === 1 ? t('combo.countOne') : t('combo.count', { n: shown.length })); }, 250);
+    }
+    function setActive(i) {
+      active = i;
+      $$('.combo-opt[aria-selected="true"]', list).forEach((n) => n.setAttribute('aria-selected', 'false'));
+      const li = i >= 0 ? $('#opt-' + kind + '-' + i) : null;
+      if (li) { li.setAttribute('aria-selected', 'true'); input.setAttribute('aria-activedescendant', li.id); keepInList(li); }
+      else input.removeAttribute('aria-activedescendant');
+      // The matching platform comes up: a quiet outline on the map, the camera stays put.
+      previewPlatform(i >= 0 && shown[i] ? shown[i] : null);
+    }
+    function keepInList(li) {
+      // Scroll the list only, never the page.
+      if (li.offsetTop < list.scrollTop) list.scrollTop = li.offsetTop - 6;
+      else if (li.offsetTop + li.offsetHeight > list.scrollTop + list.clientHeight) list.scrollTop = li.offsetTop + li.offsetHeight - list.clientHeight + 6;
+    }
+    function placeList() {
+      // Open below the field, or above it when there is more room there; the list scrolls.
+      const r = input.getBoundingClientRect();
+      const vh = window.visualViewport ? window.visualViewport.height : window.innerHeight;
+      const below = vh - r.bottom - 12, above = r.top - 72;
+      const up = below < 220 && above > below;
+      root.classList.toggle('is-up', up);
+      list.style.maxHeight = Math.max(160, Math.min(360, up ? above : below)) + 'px';
+    }
+    function openList() {
+      if (open) return;
+      open = true;
+      active = -1;
+      render();
+      const i = current ? shown.indexOf(current) : -1;
+      setActive(i >= 0 ? i : (shown.length ? 0 : -1));
+      list.hidden = false;
+      setExpanded(true);
+      syncClear();
+      // On a phone, bring the field up under the header so the list has room below it.
+      const r = input.getBoundingClientRect();
+      const vh = window.visualViewport ? window.visualViewport.height : window.innerHeight;
+      if (window.innerWidth < 900 && vh - r.bottom < 300 && r.top > 104) window.scrollBy(0, r.top - 104);
+      placeList();
+      const li = active >= 0 ? $('#opt-' + kind + '-' + active) : null;
+      if (li) keepInList(li);
+    }
+    function close(restore) {
+      if (!open) { if (restore) { input.value = currentText(); syncClear(); } return; }
+      open = false;
+      list.hidden = true;
+      setExpanded(false);
+      input.removeAttribute('aria-activedescendant');
+      previewPlatform(null);
+      if (restore) input.value = currentText();
+      syncClear();
+    }
+    function pick(i, byPointer) {
+      const o = shown[i]; if (!o) return;
+      close(false);
+      current = o;
+      input.value = o.text;
+      syncClear();
+      if (byPointer) input.blur(); // on a phone this also closes the keyboard
+      select(kind, o.rec || syntheticRecord(kind === 'from' ? 'arr' : 'dep', o.key));
+    }
+    input.addEventListener('focus', () => {
+      openList();
+      selectAll();
+      // Again after the click that focused it (a mouseup would clear the selection), unless typing has begun.
+      requestAnimationFrame(() => { if (document.activeElement === input && input.value === currentText()) selectAll(); });
+    });
+    input.addEventListener('click', () => openList());
+    input.addEventListener('input', () => { if (!open) openList(); render(); setActive(shown.length ? 0 : -1); syncClear(); });
+    input.addEventListener('blur', () => close(true));
+    input.addEventListener('keydown', (e) => {
+      const last = shown.length - 1;
+      switch (e.key) {
+        case 'ArrowDown':
+          e.preventDefault();
+          if (!open) { openList(); return; }
+          if (!e.altKey && shown.length) setActive(Math.min(last, active + 1));
+          break;
+        case 'ArrowUp':
+          e.preventDefault();
+          if (!open) { openList(); return; }
+          if (e.altKey) { if (active >= 0) pick(active, false); else close(true); return; }
+          if (shown.length) setActive(Math.max(0, active - 1));
+          break;
+        case 'Home': if (open && shown.length) { e.preventDefault(); setActive(0); } break;
+        case 'End': if (open && shown.length) { e.preventDefault(); setActive(last); } break;
+        case 'Enter':
+          if (!open) return;
+          e.preventDefault();
+          if (active >= 0) pick(active, false); else if (shown.length) pick(0, false);
+          break;
+        case 'Escape':
+          // Close and bring the previous choice back.
+          e.preventDefault();
+          close(true);
+          selectAll();
+          break;
+        case 'Tab': close(true); break;
+        default: break;
+      }
+    });
+    // Keep the focus in the field while tapping in the list or on its buttons.
+    [list, clearBtn, openBtn].forEach((n) => n.addEventListener('mousedown', (e) => e.preventDefault()));
+    clearBtn.addEventListener('click', () => { input.value = ''; input.focus(); if (!open) openList(); render(); setActive(shown.length ? 0 : -1); syncClear(); });
+    openBtn.addEventListener('click', () => { if (open) close(true); else { input.focus(); openList(); } });
+    window.addEventListener('resize', () => { if (open) placeList(); });
+    return { root, setOptions, close, isOpen: () => open };
+  }
+  function previewPlatform(opt) {
+    if (!S.svg) return;
+    $$('.preview', S.svg).forEach((n) => n.remove());
+    if (!opt) return;
+    const target = (opt.section && S.svg.querySelector('#platform-' + cssId(opt.platform + opt.section))) || S.svg.querySelector('#platform-' + cssId(opt.platform));
+    if (!target || !target.getBBox) return;
+    const b = target.getBBox();
+    target.after(svgEl('rect', { class: 'preview', x: b.x - 0.8, y: b.y - 0.8, width: b.width + 1.6, height: b.height + 1.6, rx: (Number(target.getAttribute('rx')) || 3) + 0.8, 'aria-hidden': 'true' }));
+  }
+
   function buildWcToggle() {
     const box = $('#wc-toggle');
     if (!box) return;
@@ -570,23 +769,31 @@
     });
   }
 
+  /* The options, in the same order as always: the sample records, then every other platform and section. */
   function fillSelectors() {
-    const fromSel = $('#sel-from'), toSel = $('#sel-to');
-    fromSel.innerHTML = ''; toSel.innerHTML = '';
+    if (!combos.from) return;
     const pfWord = t('dep.platform');
-    const fill = (sel, records, current, describe) => {
-      records.forEach((r) => sel.appendChild(el('option', { value: r.id, text: pfWord + ' ' + platformLabel(r.platform, r.section) + ' · ' + describe(r) })));
+    const optionsFor = (kind, records, describe) => {
+      const out = [];
+      records.forEach((r) => {
+        const pfLabel = platformLabel(r.platform, r.section), d = describe(r);
+        out.push({
+          key: r.id, rec: r, platform: String(r.platform), section: r.section || null, pfLabel, trainNo: r.train ? String(r.train.number || '') : '',
+          name: trainName(r), detail: d, when: whenText(r), text: pfWord + ' ' + pfLabel + ' · ' + trainName(r) + (d ? ' ' + d : ''),
+          words: normText([r.train && r.train.type, r.destination, r.origin].filter(Boolean).join(' ')).split(/[^a-z0-9]+/).filter(Boolean)
+        });
+      });
       (S.data.platforms || []).forEach((p) => {
         (p.sections && p.sections.length ? p.sections : [null]).forEach((sec) => {
           const key = platformLabel(p.id, sec);
           if (records.some((r) => platformLabel(r.platform, r.section) === key)) return;
-          sel.appendChild(el('option', { value: key, text: pfWord + ' ' + key }));
+          out.push({ key, rec: null, platform: String(p.id), section: sec, pfLabel: key, trainNo: '', name: pfWord + ' ' + key, detail: '', when: '', text: pfWord + ' ' + key, words: [] });
         });
       });
-      if (current) sel.value = keyOf(current);
+      return out;
     };
-    fill(fromSel, S.arrivals, S.from, (r) => trainName(r) + (r.origin ? ' ' + t('train.from', { x: r.origin }) : ''));
-    fill(toSel, S.departures, S.to, (r) => trainName(r) + (r.destination ? ' ' + t('train.to', { x: r.destination }) : ''));
+    combos.from.setOptions(optionsFor('from', S.arrivals, (r) => (r.origin ? t('train.from', { x: r.origin }) : '')), S.from ? keyOf(S.from) : null);
+    combos.to.setOptions(optionsFor('to', S.departures, (r) => (r.destination ? t('train.to', { x: r.destination }) : '')), S.to ? keyOf(S.to) : null);
   }
 
   /* ---------- time ---------- */

@@ -75,6 +75,12 @@ window.PerronjoyI18n = (function () {
       'train.from': 'uit {x}',
       'train.to': 'naar {x}',
       'train.unknown': 'Trein',
+      'combo.placeholder': 'Zoek spoor, trein of plaats',
+      'combo.noResult': 'Geen resultaat',
+      'combo.clear': 'Zoekveld wissen',
+      'combo.open': 'Lijst openen',
+      'combo.count': '{n} resultaten',
+      'combo.countOne': '1 resultaat',
       'wc.toggle': 'WC onderweg',
       'wc.marker': 'WC',
       'wc.stop': 'Toiletbezoek, ongeveer {m} min',
@@ -161,6 +167,12 @@ window.PerronjoyI18n = (function () {
       'train.from': 'from {x}',
       'train.to': 'to {x}',
       'train.unknown': 'Train',
+      'combo.placeholder': 'Search platform, train or place',
+      'combo.noResult': 'No match',
+      'combo.clear': 'Clear search',
+      'combo.open': 'Open list',
+      'combo.count': '{n} results',
+      'combo.countOne': '1 result',
       'wc.toggle': 'Toilet on the way',
       'wc.marker': 'WC',
       'wc.stop': 'Toilet stop, about {m} min',
@@ -221,6 +233,7 @@ window.PerronjoyI18n = (function () {
     scope.querySelectorAll('[data-i18n]').forEach((el) => { el.textContent = t(el.dataset.i18n); });
     scope.querySelectorAll('[data-i18n-label]').forEach((el) => { el.setAttribute('aria-label', t(el.dataset.i18nLabel)); });
     scope.querySelectorAll('[data-i18n-title]').forEach((el) => { el.setAttribute('title', t(el.dataset.i18nTitle)); });
+    scope.querySelectorAll('[data-i18n-placeholder]').forEach((el) => { el.setAttribute('placeholder', t(el.dataset.i18nPlaceholder)); });
     scope.querySelectorAll('.lang-switch span').forEach((el) => {
       el.setAttribute('aria-current', el.dataset.lang === lang ? 'true' : 'false');
     });

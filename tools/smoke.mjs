@@ -5,7 +5,8 @@
    no browser errors, a route with steps, the green platform, a moving arrival
    train, smooth camera frames, language switch (also scene labels), theme switch,
    list mode, and picking another departure; the WC markers, the "WC onderweg"
-   switch with its URL, steps and list section. Placeholder stations are skipped.
+   switch with its URL, steps and list section; the search-and-select fields by
+   keyboard and mouse. Placeholder stations are skipped.
    Exit code 1 when a check fails. */
 
 import { readFileSync, existsSync } from 'node:fs';
@@ -29,7 +30,7 @@ for (const id of ids) {
   const data = JSON.parse(readFileSync(jsonPath, 'utf8'));
   console.log(`\n== ${id} ==`);
   if (data.status === 'placeholder') { console.log('  skip   placeholder'); continue; }
-  const results = [...await smoke(id), ...await smokeToilets(id, data)];
+  const results = [...await smoke(id), ...await smokeToilets(id, data), ...await smokeSearch(id)];
   results.forEach(([ok, msg]) => { console.log((ok ? '  ok     ' : '  FAIL   ') + msg); if (!ok) failed = true; });
 }
 await browser.close();
@@ -184,6 +185,117 @@ async function smokeToilets(id, data) {
   check(only.toWc && /is-wc/.test(only.last) && only.to === 'none', 'to=none with via=wc: the route ends at the nearest toilet');
 
   check(errors.length === 0, errors.length ? 'browser errors: ' + errors.join(' | ') : 'no browser errors (toilets)');
+  await context.close();
+  return out;
+}
+
+/* Search and select (SPEC 4): type, pick with Enter or a tap, Escape brings the old choice back. */
+async function smokeSearch(id) {
+  const out = [];
+  const check = (ok, msg) => out.push([!!ok, msg]);
+  const context = await browser.newContext({ viewport: { width: 390, height: 844 } });
+  const page = await context.newPage();
+  const errors = [];
+  page.on('pageerror', (e) => errors.push(e.message));
+  await page.goto(server.base + 'station.html?station=' + encodeURIComponent(id) + '&lang=nl&theme=light&motion=off', { waitUntil: 'networkidle' });
+  await page.waitForFunction(() => document.documentElement.dataset.pjState === 'ready', null, { timeout: 10000 });
+  const url = (k) => page.evaluate((key) => new URLSearchParams(location.search).get(key), k);
+  const state = () => page.evaluate(() => {
+    const s = window.Perronjoy.state;
+    const lab = (r) => String(r.platform) + (r.section || '');
+    return { to: s.to && s.to.id, from: s.from && s.from.id, deps: s.departures.map((r) => ({ id: r.id, label: lab(r), platform: String(r.platform), dest: r.destination, number: r.train ? String(r.train.number) : '' })), arrs: s.arrivals.map((r) => ({ id: r.id, label: lab(r) })) };
+  });
+  const yours = () => page.evaluate(() => { const n = document.querySelector('svg.scene .platform.is-yours'); return n ? n.id : null; });
+  const shownKeys = () => page.evaluate(() => Array.from(document.querySelectorAll('#list-to .combo-opt')).map((n) => n.dataset.key));
+  const typeIn = async (sel, text) => { await page.click(sel); await page.keyboard.press('Control+A'); await page.keyboard.type(text, { delay: 5 }); };
+
+  const st = await state();
+  const fontPx = await page.evaluate(() => parseFloat(getComputedStyle(document.querySelector('#sel-to')).fontSize));
+  check(fontPx >= 16, `search field text is ${fontPx}px (at least 16, so iOS does not zoom)`);
+  await page.click('#sel-to');
+  const opened = await page.evaluate(() => ({ expanded: document.querySelector('#sel-to').getAttribute('aria-expanded'), n: document.querySelectorAll('#list-to .combo-opt').length, role: document.querySelector('#sel-to').getAttribute('role') }));
+  check(opened.role === 'combobox' && opened.expanded === 'true' && opened.n >= st.deps.length, `tapping the field opens the full list (${opened.n} options)`);
+  await page.keyboard.press('Escape');
+
+  // 1. A platform number picks the first departure there: URL, green platform, field.
+  const d = st.deps.find((r) => r.id !== st.to && r.label !== (st.deps.find((x) => x.id === st.to) || {}).label);
+  if (d) {
+    const first = st.deps.find((r) => r.label === d.label);
+    await typeIn('#sel-to', d.label);
+    await page.keyboard.press('Enter');
+    const y = await yours();
+    check(await url('to') === first.id && y && y.startsWith('platform-' + first.platform), `typing "${d.label}" + Enter picks ${first.id}; platform ${first.platform} turns green`);
+    check((await page.inputValue('#sel-to')).includes(d.label), 'the field shows the new choice');
+  }
+  // 2. "spoor 5" is "5", in both languages.
+  if (d) {
+    await typeIn('#sel-to', 'spoor ' + d.label); const a = (await shownKeys())[0];
+    await typeIn('#sel-to', d.label); const b = (await shownKeys())[0];
+    check(a && a === b, `"spoor ${d.label}" finds the same as "${d.label}"`);
+    await page.keyboard.press('Escape');
+  }
+  // 3. A destination.
+  const counts = {}; st.deps.forEach((r) => { counts[r.dest] = (counts[r.dest] || 0) + 1; });
+  const e = st.deps.slice().reverse().find((r) => counts[r.dest] === 1 && r.id !== (d && d.id));
+  if (e) {
+    await typeIn('#sel-to', e.dest.toLowerCase());
+    const keys = await shownKeys();
+    await page.keyboard.press('Enter');
+    check(keys[0] === e.id && await url('to') === e.id, `typing "${e.dest.toLowerCase()}" + Enter picks ${e.id}`);
+  }
+  // 4. A train number by prefix.
+  const f = st.deps.find((r) => r.number && r.number.length >= 3);
+  if (f) {
+    await typeIn('#sel-to', f.number.slice(0, 2));
+    check((await shownKeys()).includes(f.id), `typing "${f.number.slice(0, 2)}" finds train ${f.number}`);
+    await page.keyboard.press('Escape');
+  }
+  // 5. No result, then Escape restores the previous choice.
+  const before = { to: await url('to'), text: await page.inputValue('#sel-to') };
+  await typeIn('#sel-to', 'zzqx');
+  const empty = await page.evaluate(() => { const n = document.querySelector('#list-to .combo-empty'); return n ? n.textContent : ''; });
+  check(empty === 'Geen resultaat', 'no match shows "Geen resultaat"');
+  await page.keyboard.press('Escape');
+  const after = await page.evaluate(() => ({ hidden: document.querySelector('#list-to').hidden, value: document.querySelector('#sel-to').value, expanded: document.querySelector('#sel-to').getAttribute('aria-expanded') }));
+  check(after.hidden && after.expanded === 'false' && after.value === before.text && await url('to') === before.to, 'Escape closes the list and brings the previous choice back');
+  // 6. Keyboard: Home, End, ArrowDown; the active platform gets a quiet outline on the map.
+  await page.click('#sel-to');
+  await page.keyboard.press('End');
+  const endId = await page.evaluate(() => { const ids = Array.from(document.querySelectorAll('#list-to .combo-opt')).map((n) => n.id); return { last: ids[ids.length - 1], act: document.querySelector('#sel-to').getAttribute('aria-activedescendant') }; });
+  await page.keyboard.press('Home');
+  await page.keyboard.press('ArrowDown');
+  const down = await page.evaluate(() => ({ act: document.querySelector('#sel-to').getAttribute('aria-activedescendant'), preview: document.querySelectorAll('svg.scene .preview').length, sel: document.querySelectorAll('#list-to [aria-selected="true"]').length }));
+  check(endId.act === endId.last && down.act === 'opt-to-1' && down.sel === 1, 'End, Home and ArrowDown move the active option');
+  check(down.preview === 1, 'the active option\'s platform has a preview outline');
+  await page.keyboard.press('Escape');
+  check(await page.evaluate(() => document.querySelectorAll('svg.scene .preview').length) === 0, 'the preview goes away when the list closes');
+  // 7. Mouse and touch: tap the open button, then an option.
+  await page.click('#combo-to .combo-open');
+  const opt = page.locator('#list-to .combo-opt:not(.is-current)').nth(1);
+  const key = await opt.getAttribute('data-key');
+  await opt.click();
+  check(await url('to') === key && await page.evaluate(() => document.querySelector('#list-to').hidden), `tapping an option picks it (${key})`);
+  // 8. The arrival field works the same way.
+  await page.click('#sel-from');
+  const fromOpts = await page.evaluate(() => Array.from(document.querySelectorAll('#list-from .combo-opt')).map((n) => ({ key: n.dataset.key, label: n.querySelector('.pf b').textContent, current: n.classList.contains('is-current') })));
+  await page.keyboard.press('Escape');
+  const curLabel = (fromOpts.find((o) => o.current) || {}).label;
+  const target = fromOpts.find((o) => o.label !== curLabel);
+  if (target) {
+    await typeIn('#sel-from', target.label);
+    await page.keyboard.press('Enter');
+    check(await url('from') === target.key, `typing "${target.label}" in the arrival field picks ${target.key}`);
+  }
+  // 9. English: "platform 5" is "5" too.
+  await page.click('.lang-switch');
+  if (d) {
+    await typeIn('#sel-to', 'platform ' + d.label); const a = (await shownKeys())[0];
+    await typeIn('#sel-to', d.label); const b = (await shownKeys())[0];
+    const ph = await page.getAttribute('#sel-to', 'placeholder');
+    check(a && a === b && ph === 'Search platform, train or place', 'English: "platform N" works, placeholder in English');
+    await page.keyboard.press('Escape');
+  }
+  check(errors.length === 0, errors.length ? 'browser errors: ' + errors.join(' | ') : 'no browser errors (search)');
   await context.close();
   return out;
 }

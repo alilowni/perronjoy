@@ -43,12 +43,24 @@
       <section class="card">
         <h2 data-i18n="transfer.title">Jouw overstap</h2>
         <div class="transfer-row">
-          <label for="sel-from" data-i18n="transfer.from">Je komt aan op</label>
-          <select id="sel-from"></select>
+          <label id="lbl-from" for="sel-from" data-i18n="transfer.from">Je komt aan op</label>
+          <div class="combo" id="combo-from">
+            <input id="sel-from" class="combo-input" type="text" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="list-from" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" enterkeyhint="go" data-i18n-placeholder="combo.placeholder" placeholder="Zoek spoor, trein of plaats">
+            <button type="button" class="combo-clear" tabindex="-1" data-i18n-label="combo.clear" aria-label="Zoekveld wissen" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M7 7l10 10M17 7L7 17"/></svg></button>
+            <button type="button" class="combo-open" tabindex="-1" data-i18n-label="combo.open" aria-label="Lijst openen" aria-controls="list-from" aria-expanded="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button>
+            <ul class="combo-list" id="list-from" role="listbox" aria-labelledby="lbl-from" hidden></ul>
+            <span class="sr-only" id="status-from" role="status" aria-live="polite"></span>
+          </div>
         </div>
         <div class="transfer-row">
-          <label for="sel-to" data-i18n="transfer.to">Je volgende trein</label>
-          <select id="sel-to"></select>
+          <label id="lbl-to" for="sel-to" data-i18n="transfer.to">Je volgende trein</label>
+          <div class="combo" id="combo-to">
+            <input id="sel-to" class="combo-input" type="text" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="list-to" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" enterkeyhint="go" data-i18n-placeholder="combo.placeholder" placeholder="Zoek spoor, trein of plaats">
+            <button type="button" class="combo-clear" tabindex="-1" data-i18n-label="combo.clear" aria-label="Zoekveld wissen" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M7 7l10 10M17 7L7 17"/></svg></button>
+            <button type="button" class="combo-open" tabindex="-1" data-i18n-label="combo.open" aria-label="Lijst openen" aria-controls="list-to" aria-expanded="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button>
+            <ul class="combo-list" id="list-to" role="listbox" aria-labelledby="lbl-to" hidden></ul>
+            <span class="sr-only" id="status-to" role="status" aria-live="polite"></span>
+          </div>
         </div>
         <label class="wc-switch" for="wc-toggle">
           <input type="checkbox" id="wc-toggle" role="switch">
