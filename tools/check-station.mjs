@@ -196,6 +196,18 @@ function checkStation(id) {
   }
   nodes.forEach((n) => { if (!circles[n.id]) err(`scene.svg needs <circle id="node-${n.id}" cx=".." cy=".."> for node "${n.id}"`); });
   Object.keys(circles).forEach((k) => { if (!nodeMap[k]) warn(`scene.svg has node-${k} that station.json does not use`); });
+  // A platform node lies on its platform: the arriving train stops next to it (SPEC 7).
+  const platformRects = {};
+  for (const m of svg.matchAll(/<rect\s([^>]*)>/g)) {
+    const idm = m[1].match(/(?:^|\s)id="platform-(\d+)"/); if (!idm) continue;
+    const num = (k) => parseFloat((m[1].match(new RegExp(`(?:^|\\s)${k}="([-\\d.]+)"`)) || [])[1]);
+    platformRects[idm[1]] = { x: num('x'), y: num('y'), w: num('width'), h: num('height') };
+  }
+  nodes.forEach((n) => {
+    const c = circles[n.id], r = n.kind === 'platform' && platformRects[String(n.platform)];
+    if (!c || !r || [r.x, r.y, r.w, r.h].some(Number.isNaN)) return;
+    if (c.x < r.x || c.x > r.x + r.w || c.y < r.y || c.y > r.y + r.h) warn(`platform node "${n.id}" (${c.x}, ${c.y}) lies outside platform-${n.platform}; the arriving train stops beside its platform (SPEC 7)`);
+  });
   // The shell reads plain coordinates: no transform on a layer group, platform rect or node circle (SPEC 5.2).
   for (const m of svg.matchAll(/<(g|rect|circle)\s([^>]*)>/g)) {
     const idm = m[2].match(/(?:^|\s)id="((?:layer|platform|node)-[^"]+)"/);
