@@ -19,6 +19,7 @@ const STATUSES = ['placeholder', 'draft', 'ready'];
 const SCENE_CLASSES = new Set(['ground', 'block', 'block--tall', 'roof', 'building', 'square', 'road', 'road-line', 'park', 'water', 'tree', 'bike',
   'platform', 'passage', 'passage--above', 'stairs', 'stairs-line', 'label', 'label--muted', 'label--water']);
 const SURROUNDING_CLASSES = ['block', 'building', 'square', 'road', 'park', 'water', 'tree', 'bike'];
+const SCENE_ELEMENTS = new Set(['svg', 'title', 'g', 'rect', 'path', 'circle', 'ellipse', 'line', 'polygon', 'polyline', 'text']);
 
 const args = process.argv.slice(2);
 const ids = !args.length || args.includes('--all')
@@ -168,6 +169,9 @@ function checkStation(id) {
   if (/<image|<foreignObject/i.test(svg)) err('scene.svg must not contain <image> or <foreignObject>');
   if (/href="https?:/i.test(svg)) err('scene.svg must not reference external URLs');
   if (/<style/i.test(svg)) err('scene.svg must not contain <style>; colours come from site/css/site.css (SPEC 5.3)');
+  const otherElements = new Set();
+  for (const m of svg.matchAll(/<([a-zA-Z][\w:-]*)/g)) if (!SCENE_ELEMENTS.has(m[1]) && !['script', 'style', 'image', 'foreignObject', 'tspan'].includes(m[1])) otherElements.add(m[1]);
+  if (otherElements.size) err(`scene.svg uses <${[...otherElements].join('>, <')}>; allowed elements are ${[...SCENE_ELEMENTS].join(', ')} (SPEC 5.3)`);
   ['layer-ground', 'layer-tracks', 'layer-platforms', 'layer-nodes'].forEach((l) => { if (!new RegExp(`id="${l}"`).test(svg)) err(`scene.svg needs a group with id="${l}"`); });
   const ids = new Set(); for (const m of svg.matchAll(/\sid="([^"]+)"/g)) { if (ids.has(m[1])) err(`duplicate id "${m[1]}" in scene.svg`); ids.add(m[1]); }
   platforms.forEach((p) => {
@@ -214,11 +218,15 @@ function checkStation(id) {
   if (/<tspan/i.test(svg)) err('scene.svg uses <tspan>; use one <text> per line so the language switch works (SPEC 5.4)');
 
   // Themes: colours come from classes (SPEC 5.3).
-  for (const m of svg.matchAll(/\s(fill|stroke)="(#[0-9a-f]{3,8}|rgb[^"]*|hsl[^"]*|[a-z]+)"/gi)) {
+  for (const m of svg.matchAll(/\s(fill|stroke|color|stop-color|flood-color|lighting-color)="(#[0-9a-f]{3,8}|rgb[^"]*|hsl[^"]*|[a-z]+)"/gi)) {
     if (['none', 'currentcolor', 'transparent'].includes(m[2].toLowerCase())) continue;
     err(`hard-coded ${m[1]}="${m[2]}" breaks the dark theme; use a class (SPEC 5.3)`);
   }
   if (/style="[^"]*(fill|stroke|color)\s*:/i.test(svg)) err('inline style with a colour breaks the dark theme; use a class (SPEC 5.3)');
+  for (const m of svg.matchAll(/\s([\w-]+)="\s*url\(/gi)) if (m[1].toLowerCase() !== 'filter') err(`${m[1]}="url(…)" points to a gradient or pattern, which carries its own colours; use a class (SPEC 5.3)`);
+  if (/style="[^"]*url\(/i.test(svg)) err('inline style with url(…) is not allowed; use a class (SPEC 5.3)');
+  if (/\sfilter="|style="[^"]*filter\s*:/i.test(svg)) err('scene.svg uses a filter; filters are not allowed (SPEC 5.3)');
+  if (/\sfont-family="|font-family\s*:/i.test(svg)) err('scene.svg sets font-family; fonts are not allowed, the shell sets the font (SPEC 5.3)');
   const unknown = new Set();
   for (const m of svg.matchAll(/\sclass="([^"]+)"/g)) m[1].split(/\s+/).forEach((c) => { if (c && !SCENE_CLASSES.has(c)) unknown.add(c); });
   if (unknown.size) warn(`unknown class(es) ${[...unknown].join(', ')}: they get no colour in either theme (SPEC 5.3)`);
