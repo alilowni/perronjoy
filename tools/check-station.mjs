@@ -13,7 +13,9 @@ import { fileURLToPath } from 'node:url';
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const STATIONS = join(ROOT, 'site', 'stations');
 const LIMITS = { svgKB: 150, jsonKB: 60 };
-const NODE_KINDS = ['platform', 'stairs', 'escalator', 'lift', 'ramp', 'passage', 'hall', 'exit', 'waypoint'];
+const NODE_KINDS = ['platform', 'stairs', 'escalator', 'lift', 'ramp', 'passage', 'hall', 'exit', 'waypoint', 'toilet'];
+const TOILET_FLAGS = ['paid', 'accessible', 'outside_gates'];
+const WC_HALF = 3.4; // half the size of the WC marker the shell draws, in scene units (SPEC 7)
 const EDGE_KINDS = ['walk', 'stairs', 'escalator', 'lift', 'ramp'];
 const STATUSES = ['placeholder', 'draft', 'ready'];
 const SCENE_CLASSES = new Set(['ground', 'block', 'block--tall', 'roof', 'building', 'square', 'road', 'road-line', 'park', 'water', 'tree', 'bike',
@@ -98,6 +100,10 @@ function checkStation(id) {
       if (['stairs', 'escalator', 'lift', 'ramp'].includes(n.kind) && n.level === 'platform' && !n.short) warn(`node "${n.id}" has no "short" label (for example {"nl": "spoor 5", "en": "platform 5"}); the stairs label is used when you arrive by stairs`);
       if (n.short) bilingual(n.short, `node "${n.id}" short`);
     }
+    if (n.kind === 'toilet') {
+      TOILET_FLAGS.forEach((f) => { if (typeof n[f] !== 'boolean') err(`toilet node "${n.id}" needs "${f}": true or false (SPEC 7, Toilets)`); });
+      if (n.short) warn(`toilet node "${n.id}" has a "short" label; a toilet is a destination, only "label" is used (SPEC 7, Toilets)`);
+    } else TOILET_FLAGS.forEach((f) => { if (f in n) warn(`node "${n.id}" has "${f}", which only a toilet node uses`); });
   });
   platforms.forEach((p) => {
     const secs = p.sections && p.sections.length ? p.sections : [''];
@@ -123,9 +129,24 @@ function checkStation(id) {
   const platformNodes = nodes.filter((n) => n.kind === 'platform').map((n) => n.id);
   if (platformNodes.length > 1) {
     const seen = new Set([platformNodes[0]]), stack = [platformNodes[0]];
-    while (stack.length) { const u = stack.pop(); (adj[u] || []).forEach((v) => { if (!seen.has(v)) { seen.add(v); stack.push(v); } }); }
+    // A route never passes through a toilet (SPEC 7, Toilets), so do not walk on from one.
+    while (stack.length) { const u = stack.pop(); if (nodeMap[u] && nodeMap[u].kind === 'toilet') continue; (adj[u] || []).forEach((v) => { if (!seen.has(v)) { seen.add(v); stack.push(v); } }); }
     platformNodes.forEach((p) => { if (!seen.has(p)) err(`platform node "${p}" cannot be reached from "${platformNodes[0]}" by walking`); });
   }
+  // Toilets: every toilet is reached from every platform node (SPEC 7, Toilets).
+  // The shell never routes through a toilet, so walk the graph without passing one.
+  const toilets = nodes.filter((n) => n.kind === 'toilet');
+  toilets.forEach((wc) => {
+    const unreached = platformNodes.filter((p) => {
+      const seen = new Set([p]), stack = [p];
+      while (stack.length) { const u = stack.pop(); if (u === wc.id) return false; if (nodeMap[u] && nodeMap[u].kind === 'toilet') continue; (adj[u] || []).forEach((v) => { if (!seen.has(v)) { seen.add(v); stack.push(v); } }); }
+      return true;
+    });
+    if (unreached.length) err(`toilet "${wc.id}" cannot be reached from platform node(s) ${unreached.map((p) => '"' + p + '"').join(', ')} (SPEC 7, Toilets)`);
+  });
+  if (data.no_toilets != null && typeof data.no_toilets !== 'boolean') err('"no_toilets" must be true or false (SPEC 6)');
+  if (data.no_toilets === true && toilets.length) warn('"no_toilets" is true but the graph has toilet nodes; remove one of them (SPEC 7, Toilets)');
+  if (data.status === 'ready' && !toilets.length && data.no_toilets !== true) err('a ready station needs at least one "toilet" node, or "no_toilets": true with the reason in NOTES.md under "## Toilets" (SPEC 7, Toilets)');
 
   /* ---- arrivals / departures ---- */
   const checkRecord = (r, where, isDep) => {
@@ -212,6 +233,18 @@ function checkStation(id) {
     if (!c || !r || [r.x, r.y, r.w, r.h].some(Number.isNaN)) return;
     if (c.x < r.x || c.x > r.x + r.w || c.y < r.y || c.y > r.y + r.h) warn(`platform node "${n.id}" (${c.x}, ${c.y}) lies outside platform-${n.platform}; the arriving train stops beside its platform (SPEC 7)`);
   });
+  // The shell draws a WC marker at every toilet node; keep it off the platform number badges (SPEC 7, Toilets).
+  nodes.filter((n) => n.kind === 'toilet').forEach((n) => {
+    const c = circles[n.id]; if (!c) return;
+    platforms.forEach((p) => {
+      const r = platformRects[String(p.id)]; if (!r || [r.x, r.y, r.w, r.h].some(Number.isNaN)) return;
+      const bw = String(p.id).length > 1 ? 10 : 8;
+      [0.18, 0.82].forEach((f) => {
+        const bx = r.x + r.w / 2, by = r.y + r.h * f;
+        if (Math.abs(c.x - bx) < bw / 2 + WC_HALF && Math.abs(c.y - by) < 4 + WC_HALF) warn(`toilet node "${n.id}" (${c.x}, ${c.y}) lies under the number badge of platform ${p.id} at (${bx}, ${by.toFixed(1)}); move it, or the shell shifts the WC marker aside (SPEC 7, Toilets)`);
+      });
+    });
+  });
   // The shell reads plain coordinates: no transform on a layer group, platform rect or node circle (SPEC 5.2).
   for (const m of svg.matchAll(/<(g|rect|circle)\s([^>]*)>/g)) {
     const idm = m[2].match(/(?:^|\s)id="((?:layer|platform|node)-[^"]+)"/);
@@ -268,7 +301,11 @@ function checkStation(id) {
   if (!existsSync(notesPath)) err('NOTES.md is missing (SPEC 3)');
   else {
     const notes = readFileSync(notesPath, 'utf8');
-    ['## Sources', '## Facts', '## Surroundings', '## VERIFY', '## Shell issues'].forEach((h) => { if (!notes.includes(h)) err(`NOTES.md needs a "${h}" section (copy the template headings)`); });
+    ['## Sources', '## Facts', '## Surroundings', '## Toilets', '## VERIFY', '## Shell issues'].forEach((h) => { if (!notes.includes(h)) err(`NOTES.md needs a "${h}" section (copy the template headings)`); });
+    // Toilets: one line per toilet, or the reason there is none (SPEC 7, Toilets).
+    const wcSection = (notes.split(/^## Toilets[^\n]*$/m)[1] || '').split(/^## /m)[0];
+    nodes.filter((n) => n.kind === 'toilet').forEach((n) => { if (wcSection && !wcSection.includes(n.id)) warn(`NOTES.md "## Toilets" does not mention toilet "${n.id}"; give it one line with its source and flags (SPEC 7, Toilets)`); });
+    if (data.no_toilets === true && wcSection.replace(/\s+/g, ' ').trim().length < 20) err('"no_toilets" is true, so NOTES.md must explain under "## Toilets" why the station has no public toilet (SPEC 7, Toilets)');
   }
 
   info.push(`station.json ${jsonKB.toFixed(0)} KB, scene.svg ${svgKB.toFixed(0)} KB`);

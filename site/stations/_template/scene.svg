@@ -113,7 +113,8 @@
   </g>
 
   <!-- 7. Walking-graph nodes. Invisible circles, id="node-ID".
-       Platform nodes: node-pN, or node-pNa / node-pNb when the platform has sections. -->
+       Platform nodes: node-pN, or node-pNa / node-pNb when the platform has sections.
+       Toilet nodes (node-wc-…) get a circle too; the shell draws the WC marker. -->
   <g id="layer-nodes">
     <circle id="node-p1a" cx="48" cy="120" r="1"/>
     <circle id="node-p1b" cx="48" cy="250" r="1"/>
@@ -127,5 +128,6 @@
     <circle id="node-t23" cx="92" cy="210" r="1"/>
     <circle id="node-t4" cx="136" cy="210" r="1"/>
     <circle id="node-hall" cx="22" cy="210" r="1"/>
+    <circle id="node-wc-hall" cx="16" cy="236" r="1"/>
   </g>
 </svg>

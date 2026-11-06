@@ -36,7 +36,8 @@
     { "id": "t1", "kind": "passage", "level": "tunnel", "label": { "nl": "de tunnel", "en": "the tunnel" } },
     { "id": "t23", "kind": "passage", "level": "tunnel", "label": { "nl": "de tunnel", "en": "the tunnel" } },
     { "id": "t4", "kind": "passage", "level": "tunnel", "label": { "nl": "de tunnel", "en": "the tunnel" } },
-    { "id": "hall", "kind": "hall", "level": "tunnel", "label": { "nl": "de stationshal", "en": "the station hall" } }
+    { "id": "hall", "kind": "hall", "level": "tunnel", "label": { "nl": "de stationshal", "en": "the station hall" } },
+    { "id": "wc-hall", "kind": "toilet", "level": "tunnel", "label": { "nl": "de toiletten in de stationshal, bij de ingang aan het Stationsplein", "en": "the toilets in the station hall, by the entrance on the Stationsplein" }, "paid": true, "accessible": true, "outside_gates": true }
   ],
 
   "edges": [
@@ -50,7 +51,8 @@
     { "from": "st4", "to": "t4", "kind": "stairs", "seconds": 20 },
     { "from": "t1", "to": "t23", "kind": "walk", "seconds": 45 },
     { "from": "t23", "to": "t4", "kind": "walk", "seconds": 45 },
-    { "from": "t1", "to": "hall", "kind": "walk", "seconds": 30 }
+    { "from": "t1", "to": "hall", "kind": "walk", "seconds": 30 },
+    { "from": "t1", "to": "wc-hall", "kind": "walk", "seconds": 40 }
   ],
 
   "arrivals": [

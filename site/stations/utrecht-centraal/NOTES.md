@@ -41,6 +41,8 @@ shows, or that no source confirms, are marked **VERIFY**.
 | 10 | Gemeente Utrecht press release (August 2019); DUIC | Stationsplein bicycle parking: 12,500 places, three levels under Stationsplein Oost | 2026-11-05 |
 | 11 | Gemeente Utrecht; DUIC (2018) | Jaarbeursplein renewed and car-free in 2018 with about 40 trees; about 100 new trees on the Croeselaan | 2026-11-05 |
 | 12 | SpoorPro (March 2025) | a stair entrance from the Moreelsebrug is planned, not built | 2026-11-05 |
+| 13 | OpenStreetMap contributors: API map download of the station area, 6 November 2026, read with a small script: public toilets (amenity=toilets with level, fee or charge, wheelchair, access) and check-in gates (barrier=turnstile) | the SANIFAIR toilets in the station hall (level 1, fee, wheelchair) and the gate lines across the hall; the toilets in Hoog Catharijne | 2026-11-06 |
+| 14 | NS, Toiletten (www.ns.nl, 6 November 2026): SANIFAIR toilets with staff at the large stations, EUR 1.10 a visit | the toilets at large stations are SANIFAIR, staffed and paid | 2026-11-06 |
 
 ## Facts
 
@@ -103,6 +105,24 @@ unless noted.
   Jaarbeursplein; on the hall "Utrecht Centraal" and "Stationshal".
 - No trees on Stationsplein Oost, the bus square or the station area: no source
   shows them.
+
+## Toilets
+
+One public toilet block at the station. Positions from source 13, mapped
+with the "Scale" section: along the tracks from the OSM outline of the
+station hall (v −57..34 in OSM, −54..37 in the scene), across the tracks
+beyond track 21 ×0.6.
+
+- `wc-hall`: the toilets in the station hall, on the Jaarbeurs side (SANIFAIR,
+  OSM node 2449612568, address Stationshal 11C), level `hall`, scene (522, 276),
+  16 s from the escalators of 20/21. Source 13, 14. paid: yes (OSM `fee=yes`;
+  NS: SANIFAIR, €1.10); accessible: yes (OSM `wheelchair=yes`,
+  `toilets:wheelchair=yes`); outside_gates: no — the OSM gate line on the
+  Jaarbeurs side runs about 7 m further out, so the toilets lie inside the
+  gates. VERIFY the gate side.
+- Not included: the toilets in Hoog Catharijne (2theloo in car park P5,
+  One Hundred Restrooms in the Godebaldkwartier). They are in the shopping
+  centre, not in the station.
 
 ## Decisions
 
@@ -186,6 +206,9 @@ unless noted.
   aerial photo.
 - Sections of the sample trains, and train numbers not listed as real above:
   plausible only.
+- Toilets `wc-hall` (SANIFAIR, station hall): whether they are inside or
+  outside the gates. OSM puts the Jaarbeurs gate line about 7 m further out;
+  check on the NS station map or at the station.
 
 ## Shell issues
 

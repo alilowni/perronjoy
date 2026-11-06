@@ -268,5 +268,6 @@
     <circle id="node-es20-s" cx="505" cy="254" r="1"/>
     <circle id="node-hall20-n" cx="505" cy="346" r="1"/>
     <circle id="node-hall20-s" cx="505" cy="272" r="1"/>
+    <circle id="node-wc-hall" cx="522" cy="276" r="1"/>
   </g>
 </svg>

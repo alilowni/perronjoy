@@ -14,7 +14,8 @@
 
   "levels": [
     {"id":"platform","label":{"nl":"perron","en":"platform"},"position":0},
-    {"id":"passage","label":{"nl":"passage","en":"passage"},"position":-1}
+    {"id":"passage","label":{"nl":"passage","en":"passage"},"position":-1},
+    {"id":"hall-1","label":{"nl":"eerste verdieping van de stationshal","en":"first floor of the station hall"},"position":0}
   ],
 
   "platforms": [
@@ -89,7 +90,9 @@
     {"id":"pa15w","kind":"passage","level":"passage","label":{"nl":"de passage","en":"the passage"}},
     {"id":"pa15o","kind":"passage","level":"passage","label":{"nl":"de passage","en":"the passage"}},
     {"id":"hall","kind":"hall","level":"passage","label":{"nl":"de stationshal","en":"the station hall"}},
-    {"id":"north","kind":"exit","level":"passage","label":{"nl":"de uitgang Proveniersplein","en":"the Proveniersplein exit"}}
+    {"id":"north","kind":"exit","level":"passage","label":{"nl":"de uitgang Proveniersplein","en":"the Proveniersplein exit"}},
+    {"id":"es-wc","kind":"escalator","level":"passage","label":{"nl":"de roltrap naar de eerste verdieping","en":"the escalator to the first floor"},"short":{"nl":"de stationshal","en":"the station hall"}},
+    {"id":"wc-hall","kind":"toilet","level":"hall-1","label":{"nl":"de toiletten op de eerste verdieping van de stationshal, aan de oostkant","en":"the toilets on the first floor of the station hall, at the east end"},"paid":true,"accessible":true,"outside_gates":false}
   ],
 
   "edges": [
@@ -192,7 +195,10 @@
     {"from":"hall","to":"pa2w","kind":"walk","seconds":30},
     {"from":"pa15w","to":"north","kind":"walk","seconds":30},
     {"from":"hall","to":"pa2o","kind":"walk","seconds":30},
-    {"from":"pa15o","to":"north","kind":"walk","seconds":30}
+    {"from":"pa15o","to":"north","kind":"walk","seconds":30},
+    {"from":"pa2o","to":"es-wc","kind":"walk","seconds":34},
+    {"from":"hall","to":"es-wc","kind":"walk","seconds":48},
+    {"from":"es-wc","to":"wc-hall","kind":"escalator","seconds":30}
   ],
 
   "arrivals": [
@@ -218,6 +224,8 @@
     "West 8, Arcadis, Treinreiziger: passage of 48-50 m opened in November 2012; north entrance at the Proveniersplein; Provenierstunnel",
     "ProRail capacity analysis, 13 February 2025: track 11 is 414 m long, track 13 has a usable platform length of 398 m",
     "Rijden de Treinen train archive for Rotterdam Centraal, 2021-2024: platforms used by train series",
-    "Structurae, Wikipedia (EN), municipal and heritage records: positions of the Groothandelsgebouw, Delftse Poort, Stationsplein, Kruisplein and Proveniersplein"
+    "Structurae, Wikipedia (EN), municipal and heritage records: positions of the Groothandelsgebouw, Delftse Poort, Stationsplein, Kruisplein and Proveniersplein",
+    "OpenStreetMap contributors: API map download of the station area, 6 November 2026, read with a small script: public toilets (amenity=toilets with level, fee or charge, wheelchair, access) and check-in gates (barrier=turnstile)",
+    "NS, Toiletten (www.ns.nl, 6 November 2026): SANIFAIR toilets with staff at the large stations, EUR 1.10 a visit"
   ]
 }

@@ -5,6 +5,17 @@ Dutch railway station. It shows a realistic top-down view of the station and
 its surroundings, the train you arrive with, the platform you must reach, the
 walking route between them, and whether the time is enough.
 
+- One search-and-select field for the arrival and one for the next train:
+  tap for the full list, or type a platform ("5b", "spoor 5"), a train
+  number ("31") or a place ("rotterdam"); the matching platform is outlined
+  on the map.
+- The public toilets of every station on the map, and "WC onderweg": a route
+  via the toilet that costs the least walking, with a 3-minute stop in the
+  verdict and notes for paid toilets, wheelchair toilets and toilets outside
+  the gates. List mode lists the toilets with their walking times.
+- Trains in quiet, NS-like liveries (NS yellow and blue; muted colours for
+  Eurostar, ICE, NightJet and European Sleeper), and a few tiny neutral people
+  walking slowly on the platforms.
 - Dutch and English, remembered per browser.
 - Light and dark theme, following the system until you choose.
 - Smooth, calm motion that stops when the system asks for reduced motion.
@@ -26,7 +37,7 @@ Version 1 uses sample data. The URL also takes plain platform numbers (see
 | `utrecht-centraal` | Utrecht Centraal | [prompt](docs/prompts/utrecht-centraal.md) | ready |
 | `amsterdam-centraal` | Amsterdam Centraal | [prompt](docs/prompts/amsterdam-centraal.md) | ready |
 | `rotterdam-centraal` | Rotterdam Centraal | [prompt](docs/prompts/rotterdam-centraal.md) | ready |
-| `schiphol-airport` | Schiphol Airport | [prompt](docs/prompts/schiphol-airport.md) | placeholder |
+| `schiphol-airport` | Schiphol Airport | [prompt](docs/prompts/schiphol-airport.md) | ready |
 
 Each station is built on its own branch from its prompt. Every station follows
 the same contract in [docs/SPEC.md](docs/SPEC.md).
@@ -53,7 +64,9 @@ npm run smoke
 ```
 
 This opens every finished station in headless Chromium and tests the route, the
-moving train, both languages, both themes and list mode. It needs Playwright:
+moving train, both languages, both themes, list mode, the search fields, the
+toilets and the WC route, the walking people and the train liveries. It needs
+Playwright:
 
 ```bash
 npm i -D playwright && npx playwright install chromium
@@ -63,19 +76,22 @@ Screenshots at phone and desktop size go to `tools/out/`:
 
 ```bash
 npm run shots -- _template --theme dark --lang en
+npm run shots -- _template --via wc                  # the route via a toilet
+npm run shots -- _template --open to --search 4      # the search list, open
 ```
 
 ## URL parameters
 
 ```
-station.html?station=utrecht-centraal&from=5b&to=12a&lang=en&theme=dark&motion=off
+station.html?station=utrecht-centraal&from=5b&to=12a&via=wc&lang=en&theme=dark&motion=off
 ```
 
 | Parameter | Values | Meaning |
 |---|---|---|
 | `station` | a station id | which station to show |
 | `from` | platform with optional section, or a sample record id | where you arrive |
-| `to` | platform with optional section, or a sample record id | your next train |
+| `to` | platform with optional section, a sample record id, or `none` | your next train; `none` means no next train |
+| `via` | `wc` | route via a toilet ("WC onderweg"); with `to=none`, to the nearest toilet |
 | `lang` | `nl` (default), `en` | language; stored in `localStorage` |
 | `theme` | `light`, `dark` | force a theme for this visit; not stored |
 | `motion` | `off` | no animations (also when the system asks for reduced motion) |
@@ -139,6 +155,13 @@ overstap op een Nederlands station. Je ziet het station van bovenaf met de
 omgeving, de trein waarmee je aankomt, het spoor waar je heen moet, de
 looproute en of je genoeg tijd hebt.
 
+- Eén zoek-en-kiesveld voor je aankomst en één voor je volgende trein: zoek
+  op spoor, treinnummer of plaats.
+- De openbare toiletten van elk station op de kaart, en "WC onderweg": een
+  route langs het toilet met de kortste looptijd, met 3 minuten toiletbezoek
+  in het oordeel.
+- Treinen in rustige kleuren die op die van NS lijken, en een paar kleine
+  mensen die rustig over de perrons lopen.
 - Nederlands en Engels. De keuze wordt onthouden.
 - Licht en donker thema. Standaard volgt de site je systeem.
 - Rustige, vloeiende animaties. Ze staan uit als je systeem om minder

@@ -107,7 +107,10 @@ same; descriptive words are translated. Every text in `station.json` is
 **Graph.** Follow [SPEC 7](../SPEC.md#7-the-walking-graph): platform nodes
 `p<number><section>`, real stairs in real places, bilingual `label` and
 `short`, seconds for a hurried walk, every platform reachable from every
-other platform.
+other platform. Include every public toilet as a `toilet` node with its
+three flags (`paid`, `accessible`, `outside_gates`), reachable from every
+platform ([SPEC 7, Toilets](../SPEC.md#toilets)). The shell draws the WC
+marker; you only place the node.
 
 **Sample data.** Follow [SPEC 8](../SPEC.md#8-sample-arrivals-and-departures):
 1–3 arrivals and 6–10 departures, minutes relative to page load, real
@@ -122,6 +125,7 @@ npm run check -- utrecht-centraal
 npm run smoke -- utrecht-centraal
 npm run shots -- utrecht-centraal
 npm run shots -- utrecht-centraal --theme dark --lang en
+npm run shots -- utrecht-centraal --via wc
 ```
 
 The checker must print `0 error(s)` and the smoke test must pass. Explain any
@@ -203,6 +207,10 @@ verified, what is marked `VERIFY`, and what you could not do.
   `escalator` or `stairs` nodes on platform level with `short` labels such as
   `{"nl": "spoor 5/7", "en": "platform 5/7"}`; a `hall` node above each set.
   Connect the hall nodes along the hall with `walk` edges.
+- Toilets (verify): OpenStreetMap has one public toilet block at the
+  station, SANIFAIR in the station hall at the Jaarbeurs end, on the hall
+  level. Check which side of the gates it is on. The toilets in Hoog
+  Catharijne are in the shopping centre, not in the station.
 - Demo scenario (choose real platforms when you can verify them, otherwise
   plausible ones marked VERIFY): arrive with an Intercity from Rotterdam
   Centraal; default next train a Sprinter towards Amersfoort; also Intercity
@@ -220,17 +228,24 @@ verified, what is marked `VERIFY`, and what you could not do.
 3. Collect the surroundings from OpenStreetMap or an aerial photo: squares,
    streets, water, parks, real tree rows, large buildings, bicycle parking.
    Write them in `NOTES.md` under "Surroundings".
-4. Plan the scene: the viewBox, the x and width of every platform rect, the y
+4. Collect the public toilets: OpenStreetMap `amenity=toilets` (`level`,
+   `fee` or `charge`, `wheelchair`, `access`), the NS station page,
+   Wikipedia NL and the operator's site. Decide `paid`, `accessible` and
+   `outside_gates` for each, and write one line per toilet with its source
+   in `NOTES.md` under "Toilets" ([SPEC 7, Toilets](../SPEC.md#toilets)).
+5. Plan the scene: the viewBox, the x and width of every platform rect, the y
    range of the platforms, where the passages cross, where the surroundings sit.
-5. Write `station.json`: platforms, levels, nodes, edges, arrivals, departures.
-6. Draw `scene.svg`: ground and surroundings, passages, track centrelines,
+6. Write `station.json`: platforms, levels, nodes (with the toilets), edges, arrivals,
+   departures.
+7. Draw `scene.svg`: ground and surroundings, passages, track centrelines,
    platform rects, buildings and stairs marks, labels with `data-en`, node
-   circles. Keep node circles on the platform surfaces and inside the passages.
-7. Run the checker until it prints 0 errors. Run the smoke test and the
-   screenshots in both themes and both languages. Fix overlaps, wrong sides,
-   routes that cross tracks, and steps that read strangely.
-8. Run `npm run serve` and watch the arriving train come in once with motion on.
-9. Set `"status": "ready"`. Finish `NOTES.md`. Commit and push.
+   circles (also one for every toilet). Keep node circles on the platform
+   surfaces and inside the passages, and toilet circles off the platform badges.
+8. Run the checker until it prints 0 errors. Run the smoke test and the
+   screenshots in both themes and both languages, and with `--via wc`. Fix
+   overlaps, wrong sides, routes that cross tracks, and steps that read strangely.
+9. Run `npm run serve` and watch the arriving train come in once with motion on.
+10. Set `"status": "ready"`. Finish `NOTES.md`. Commit and push.
 
 ## 9. Done
 
@@ -240,6 +255,8 @@ In your final message, give:
 - the branch name and the last commit,
 - the platforms you drew, in order,
 - the passages and halls you modelled,
+- the toilets you added (label, level, `paid`, `accessible`, `outside_gates`)
+  and their sources,
 - the surroundings you drew, and which sources placed them,
 - every `VERIFY` item, one line each,
 - any shell issue you found,

@@ -252,5 +252,7 @@
     <circle id="node-pa15o" cx="458" cy="318" r="1"/>
     <circle id="node-hall" cx="104" cy="300" r="1"/>
     <circle id="node-north" cx="499" cy="300" r="1"/>
+    <circle id="node-es-wc" cx="114" cy="341" r="1"/>
+    <circle id="node-wc-hall" cx="104" cy="349" r="1"/>
   </g>
 </svg>

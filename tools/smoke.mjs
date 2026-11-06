@@ -4,7 +4,11 @@
    Opens each ready or draft station in headless Chromium with motion on and checks:
    no browser errors, a route with steps, the green platform, a moving arrival
    train, smooth camera frames, language switch (also scene labels), theme switch,
-   list mode, and picking another departure. Placeholder stations are skipped.
+   list mode, and picking another departure; the WC markers, the "WC onderweg"
+   switch with its URL, steps and list section; the search-and-select fields by
+   keyboard and mouse; walking people that stay on their platform and stand
+   still without motion; the livery class of every sample train. Placeholder
+   stations are skipped.
    Exit code 1 when a check fails. */
 
 import { readFileSync, existsSync } from 'node:fs';
@@ -28,7 +32,7 @@ for (const id of ids) {
   const data = JSON.parse(readFileSync(jsonPath, 'utf8'));
   console.log(`\n== ${id} ==`);
   if (data.status === 'placeholder') { console.log('  skip   placeholder'); continue; }
-  const results = await smoke(id);
+  const results = [...await smoke(id), ...await smokeToilets(id, data), ...await smokeSearch(id), ...await smokePeople(id), ...await smokeLiveries(id, data)];
   results.forEach(([ok, msg]) => { console.log((ok ? '  ok     ' : '  FAIL   ') + msg); if (!ok) failed = true; });
 }
 await browser.close();
@@ -114,6 +118,302 @@ async function smoke(id) {
   }
 
   check(errors.length === 0, errors.length ? 'browser errors: ' + errors.join(' | ') : 'no browser errors');
+  await context.close();
+  return out;
+}
+
+/* Toilets (SPEC 7): markers, the WC route, its URL and steps in both languages, list mode. */
+async function smokeToilets(id, data) {
+  const out = [];
+  const check = (ok, msg) => out.push([!!ok, msg]);
+  const toilets = (data.nodes || []).filter((n) => n.kind === 'toilet');
+  if (!toilets.length) { check(data.no_toilets === true, 'no toilet nodes and no "no_toilets"'); return out; }
+  const context = await browser.newContext({ viewport: { width: 390, height: 844 } });
+  const page = await context.newPage();
+  const errors = [];
+  page.on('pageerror', (e) => errors.push(e.message));
+  const open = async (q) => { await page.goto(server.base + 'station.html?station=' + encodeURIComponent(id) + '&theme=light&' + q, { waitUntil: 'networkidle' }); await page.waitForFunction(() => document.documentElement.dataset.pjState === 'ready', null, { timeout: 10000 }); };
+  await open('lang=nl');
+
+  const markers = await page.evaluate(() => {
+    const boxes = (sel) => Array.from(document.querySelectorAll(sel)).map((n) => n.getBoundingClientRect());
+    const wc = boxes('#layer-wc .wc-marker'), badges = boxes('#layer-badges .badge-bg');
+    const cover = wc.filter((a) => badges.some((b) => a.left < b.right - 0.5 && a.right > b.left + 0.5 && a.top < b.bottom - 0.5 && a.bottom > b.top + 0.5)).length;
+    return { count: wc.length, cover, text: Array.from(document.querySelectorAll('#layer-wc .wc-text')).every((n) => n.textContent === 'WC') };
+  });
+  check(markers.count === toilets.length && markers.text, `${markers.count} WC marker(s) for ${toilets.length} toilet node(s)`);
+  check(markers.cover === 0, `${markers.cover} WC marker(s) cover a platform badge`);
+
+  // Switch on: route via a toilet, via=wc in the URL, the toilet stop in the steps.
+  await page.click('.wc-switch');
+  const on = await page.evaluate(() => {
+    const s = window.Perronjoy.state;
+    const li = Array.from(document.querySelectorAll('#steps li'));
+    const stop = li.findIndex((n) => n.classList.contains('is-wc'));
+    return {
+      via: new URLSearchParams(location.search).get('via'), wc: s.route && s.route.wc, checked: document.querySelector('#wc-toggle').checked,
+      stop, stopText: stop >= 0 ? li[stop].textContent : '', before: stop > 0 ? li[stop - 1].textContent : '', after: li.length - stop - 1,
+      verdict: document.querySelector('#verdict').textContent, routeWc: document.querySelectorAll('#layer-route .route-wc').length,
+      active: document.querySelectorAll('#layer-wc .wc-marker.is-active').length
+    };
+  });
+  const wcNode = toilets.find((n) => n.id === on.wc);
+  check(on.via === 'wc' && on.checked, 'WC switch puts via=wc in the URL');
+  check(!!wcNode, `the route goes via toilet "${on.wc}"`);
+  check(on.stop > 0 && /Toiletbezoek, ongeveer 3 min/.test(on.stopText) && on.after >= 1, 'steps: the toilet stop, then the way on');
+  check(wcNode && on.before.includes(wcNode.label.nl), 'the step before the stop walks to the toilet by its label');
+  check(/\+ 3 min toilet/.test(on.verdict), 'the verdict counts the 3-minute toilet stop');
+  check(on.routeWc === 1 && on.active === 1, 'the toilet on the route is marked on the map');
+  const notes = wcNode ? [wcNode.paid && 'Betaald toilet', wcNode.accessible && 'Rolstoeltoilet', wcNode.outside_gates && 'Buiten de poortjes'].filter(Boolean) : [];
+  check(notes.every((n) => on.stopText.includes(n)), `the stop notes say: ${notes.join(', ') || 'nothing'}`);
+
+  // List mode: a toilets section with every toilet.
+  await page.click('#mode button[data-mode="list"]');
+  const rows = await page.locator('#list .list-wc .wc-row').count();
+  check(rows === toilets.length, `list mode shows ${rows} toilet row(s)`);
+  await page.click('#mode button[data-mode="map"]');
+
+  // Switch off again.
+  await page.click('.wc-switch');
+  const off = await page.evaluate(() => ({ via: new URLSearchParams(location.search).get('via'), stops: document.querySelectorAll('#steps li.is-wc').length }));
+  check(off.via === null && off.stops === 0, 'WC switch off removes via and the toilet stop');
+
+  // English, from the URL; and no next train: the nearest toilet.
+  await open('lang=en&via=wc');
+  const en = await page.evaluate(() => { const li = document.querySelector('#steps li.is-wc'); return { text: li ? li.textContent : '', checked: document.querySelector('#wc-toggle').checked }; });
+  check(en.checked && /Toilet stop, about 3 min/.test(en.text), 'via=wc in the URL turns the route on, in English too');
+  await open('lang=nl&via=wc&to=none');
+  const only = await page.evaluate(() => { const s = window.Perronjoy.state; const li = Array.from(document.querySelectorAll('#steps li')); return { toWc: !!(s.route && s.route.toWc), last: li.length ? li[li.length - 1].className : '', to: new URLSearchParams(location.search).get('to') }; });
+  check(only.toWc && /is-wc/.test(only.last) && only.to === 'none', 'to=none with via=wc: the route ends at the nearest toilet');
+
+  check(errors.length === 0, errors.length ? 'browser errors: ' + errors.join(' | ') : 'no browser errors (toilets)');
+  await context.close();
+  return out;
+}
+
+/* Search and select (SPEC 4): type, pick with Enter or a tap, Escape brings the old choice back. */
+async function smokeSearch(id) {
+  const out = [];
+  const check = (ok, msg) => out.push([!!ok, msg]);
+  const context = await browser.newContext({ viewport: { width: 390, height: 844 } });
+  const page = await context.newPage();
+  const errors = [];
+  page.on('pageerror', (e) => errors.push(e.message));
+  await page.goto(server.base + 'station.html?station=' + encodeURIComponent(id) + '&lang=nl&theme=light&motion=off', { waitUntil: 'networkidle' });
+  await page.waitForFunction(() => document.documentElement.dataset.pjState === 'ready', null, { timeout: 10000 });
+  const url = (k) => page.evaluate((key) => new URLSearchParams(location.search).get(key), k);
+  const state = () => page.evaluate(() => {
+    const s = window.Perronjoy.state;
+    const lab = (r) => String(r.platform) + (r.section || '');
+    return { to: s.to && s.to.id, from: s.from && s.from.id, deps: s.departures.map((r) => ({ id: r.id, label: lab(r), platform: String(r.platform), dest: r.destination, number: r.train ? String(r.train.number) : '' })), arrs: s.arrivals.map((r) => ({ id: r.id, label: lab(r) })) };
+  });
+  const yours = () => page.evaluate(() => { const n = document.querySelector('svg.scene .platform.is-yours'); return n ? n.id : null; });
+  const shownKeys = () => page.evaluate(() => Array.from(document.querySelectorAll('#list-to .combo-opt')).map((n) => n.dataset.key));
+  const typeIn = async (sel, text) => { await page.click(sel); await page.keyboard.press('Control+A'); await page.keyboard.type(text, { delay: 5 }); };
+
+  const st = await state();
+  const fontPx = await page.evaluate(() => parseFloat(getComputedStyle(document.querySelector('#sel-to')).fontSize));
+  check(fontPx >= 16, `search field text is ${fontPx}px (at least 16, so iOS does not zoom)`);
+  await page.click('#sel-to');
+  const opened = await page.evaluate(() => ({ expanded: document.querySelector('#sel-to').getAttribute('aria-expanded'), n: document.querySelectorAll('#list-to .combo-opt').length, role: document.querySelector('#sel-to').getAttribute('role') }));
+  check(opened.role === 'combobox' && opened.expanded === 'true' && opened.n >= st.deps.length, `tapping the field opens the full list (${opened.n} options)`);
+  await page.keyboard.press('Escape');
+
+  // 1. A platform number picks the first departure there: URL, green platform, field.
+  const d = st.deps.find((r) => r.id !== st.to && r.label !== (st.deps.find((x) => x.id === st.to) || {}).label);
+  if (d) {
+    const first = st.deps.find((r) => r.label === d.label);
+    await typeIn('#sel-to', d.label);
+    await page.keyboard.press('Enter');
+    const y = await yours();
+    check(await url('to') === first.id && y && y.startsWith('platform-' + first.platform), `typing "${d.label}" + Enter picks ${first.id}; platform ${first.platform} turns green`);
+    check((await page.inputValue('#sel-to')).includes(d.label), 'the field shows the new choice');
+  }
+  // 2. "spoor 5" is "5", in both languages.
+  if (d) {
+    await typeIn('#sel-to', 'spoor ' + d.label); const a = (await shownKeys())[0];
+    await typeIn('#sel-to', d.label); const b = (await shownKeys())[0];
+    check(a && a === b, `"spoor ${d.label}" finds the same as "${d.label}"`);
+    await page.keyboard.press('Escape');
+  }
+  // 3. A destination.
+  const counts = {}; st.deps.forEach((r) => { counts[r.dest] = (counts[r.dest] || 0) + 1; });
+  const e = st.deps.slice().reverse().find((r) => counts[r.dest] === 1 && r.id !== (d && d.id));
+  if (e) {
+    await typeIn('#sel-to', e.dest.toLowerCase());
+    const keys = await shownKeys();
+    await page.keyboard.press('Enter');
+    check(keys[0] === e.id && await url('to') === e.id, `typing "${e.dest.toLowerCase()}" + Enter picks ${e.id}`);
+  }
+  // 4. A train number by prefix.
+  const f = st.deps.find((r) => r.number && r.number.length >= 3);
+  if (f) {
+    await typeIn('#sel-to', f.number.slice(0, 2));
+    check((await shownKeys()).includes(f.id), `typing "${f.number.slice(0, 2)}" finds train ${f.number}`);
+    await page.keyboard.press('Escape');
+  }
+  // 5. No result, then Escape restores the previous choice.
+  const before = { to: await url('to'), text: await page.inputValue('#sel-to') };
+  await typeIn('#sel-to', 'zzqx');
+  const empty = await page.evaluate(() => { const n = document.querySelector('#list-to .combo-empty'); return n ? n.textContent : ''; });
+  check(empty === 'Geen resultaat', 'no match shows "Geen resultaat"');
+  await page.keyboard.press('Escape');
+  const after = await page.evaluate(() => ({ hidden: document.querySelector('#list-to').hidden, value: document.querySelector('#sel-to').value, expanded: document.querySelector('#sel-to').getAttribute('aria-expanded') }));
+  check(after.hidden && after.expanded === 'false' && after.value === before.text && await url('to') === before.to, 'Escape closes the list and brings the previous choice back');
+  // 6. Keyboard: Home, End, ArrowDown; the active platform gets a quiet outline on the map.
+  await page.click('#sel-to');
+  await page.keyboard.press('End');
+  const endId = await page.evaluate(() => { const ids = Array.from(document.querySelectorAll('#list-to .combo-opt')).map((n) => n.id); return { last: ids[ids.length - 1], act: document.querySelector('#sel-to').getAttribute('aria-activedescendant') }; });
+  await page.keyboard.press('Home');
+  await page.keyboard.press('ArrowDown');
+  const down = await page.evaluate(() => ({ act: document.querySelector('#sel-to').getAttribute('aria-activedescendant'), preview: document.querySelectorAll('svg.scene .preview').length, sel: document.querySelectorAll('#list-to [aria-selected="true"]').length }));
+  check(endId.act === endId.last && down.act === 'opt-to-1' && down.sel === 1, 'End, Home and ArrowDown move the active option');
+  check(down.preview === 1, 'the active option\'s platform has a preview outline');
+  await page.keyboard.press('Escape');
+  check(await page.evaluate(() => document.querySelectorAll('svg.scene .preview').length) === 0, 'the preview goes away when the list closes');
+  // 7. Mouse and touch: tap the open button, then an option.
+  await page.click('#combo-to .combo-open');
+  const opt = page.locator('#list-to .combo-opt:not(.is-current)').nth(1);
+  const key = await opt.getAttribute('data-key');
+  await opt.click();
+  check(await url('to') === key && await page.evaluate(() => document.querySelector('#list-to').hidden), `tapping an option picks it (${key})`);
+  // 8. The arrival field works the same way.
+  await page.click('#sel-from');
+  const fromOpts = await page.evaluate(() => Array.from(document.querySelectorAll('#list-from .combo-opt')).map((n) => ({ key: n.dataset.key, label: n.querySelector('.pf b').textContent, current: n.classList.contains('is-current') })));
+  await page.keyboard.press('Escape');
+  const curLabel = (fromOpts.find((o) => o.current) || {}).label;
+  const target = fromOpts.find((o) => o.label !== curLabel);
+  if (target) {
+    await typeIn('#sel-from', target.label);
+    await page.keyboard.press('Enter');
+    check(await url('from') === target.key, `typing "${target.label}" in the arrival field picks ${target.key}`);
+  }
+  // 9. English: "platform 5" is "5" too.
+  await page.click('.lang-switch');
+  if (d) {
+    await typeIn('#sel-to', 'platform ' + d.label); const a = (await shownKeys())[0];
+    await typeIn('#sel-to', d.label); const b = (await shownKeys())[0];
+    const ph = await page.getAttribute('#sel-to', 'placeholder');
+    check(a && a === b && ph === 'Search platform, train or place', 'English: "platform N" works, placeholder in English');
+    await page.keyboard.press('Escape');
+  }
+  check(errors.length === 0, errors.length ? 'browser errors: ' + errors.join(' | ') : 'no browser errors (search)');
+  await context.close();
+  return out;
+}
+
+/* Walking people (SPEC 10): a few walk, slowly, inside their platform's box; nothing moves without motion. */
+async function smokePeople(id) {
+  const out = [];
+  const check = (ok, msg) => out.push([!!ok, msg]);
+  const context = await browser.newContext({ viewport: { width: 390, height: 844 } });
+  const page = await context.newPage();
+  const errors = [];
+  page.on('pageerror', (e) => errors.push(e.message));
+  const open = async (q) => { await page.goto(server.base + 'station.html?station=' + encodeURIComponent(id) + '&lang=nl&theme=light' + q, { waitUntil: 'networkidle' }); await page.waitForFunction(() => document.documentElement.dataset.pjState === 'ready', null, { timeout: 10000 }); };
+  const sample = () => page.evaluate(() => Array.from(document.querySelectorAll('#layer-people .person.is-walker')).map((g) => {
+    const m = (g.getAttribute('transform') || '').match(/translate\(([-\d.]+)[ ,]+([-\d.]+)\)/);
+    const [x1, y1, x2, y2] = g.dataset.box.split(' ').map(Number);
+    return { x: m ? +m[1] : NaN, y: m ? +m[2] : NaN, x1, y1, x2, y2, box: g.dataset.box };
+  }));
+  await open('');
+  const first = await sample();
+  const perBox = {}; first.forEach((w) => { perBox[w.box] = (perBox[w.box] || 0) + 1; });
+  const people = await page.locator('#layer-people .person').count();
+  check(first.length >= 1 && first.length <= 20 && Object.values(perBox).every((n) => n <= 3), `${first.length} of ${people} people walk (at most 3 per platform, 20 in all)`);
+  // Sample for a few seconds: they move, and never leave their platform's box.
+  let moved = 0, outside = 0, maxStep = 0, prev = first;
+  for (let i = 0; i < 12; i++) {
+    await page.waitForTimeout(300);
+    const now = await sample();
+    now.forEach((w, k) => {
+      if (w.x < w.x1 - 0.05 || w.x > w.x2 + 0.05 || w.y < w.y1 - 0.05 || w.y > w.y2 + 0.05 || Number.isNaN(w.x)) outside++;
+      maxStep = Math.max(maxStep, Math.hypot(w.x - prev[k].x, w.y - prev[k].y));
+    });
+    prev = now;
+  }
+  prev.forEach((w, k) => { if (Math.hypot(w.x - first[k].x, w.y - first[k].y) > 0.3) moved++; });
+  check(moved >= 1, `${moved} walker(s) moved in 3.6 s`);
+  check(outside === 0, `${outside} sampled position(s) outside a platform's box`);
+  // 0.6–1.0 units per second: at most 0.3 units in 300 ms (with a little slack for frame timing).
+  check(maxStep <= 0.34, `slow: the largest move in 300 ms is ${maxStep.toFixed(2)} units`);
+  // Frames while they walk (headless gives a rough number only).
+  const frames = await page.evaluate(() => new Promise((resolve) => {
+    const times = []; const t0 = performance.now();
+    function tick(now) { times.push(now); if (now - t0 < 1500) requestAnimationFrame(tick); else {
+      let maxGap = 0; for (let i = 1; i < times.length; i++) maxGap = Math.max(maxGap, times[i] - times[i - 1]);
+      resolve({ fps: Math.round(times.length / ((times[times.length - 1] - times[0]) / 1000)), maxGap: Math.round(maxGap) });
+    } }
+    requestAnimationFrame(tick);
+  }));
+  check(frames.maxGap < 120, `frames while people walk ~${frames.fps} fps, longest frame ${frames.maxGap} ms`);
+  // Unnumbered platform surfaces have people too.
+  const bare = await page.evaluate(() => Array.from(document.querySelectorAll('#layer-platforms rect.platform')).filter((r) => !/^platform-\d+[a-z]?$/.test(r.id)).map((r) => {
+    const b = r.getBBox();
+    if (b.width * b.height < 650 || b.width < 6) return null;
+    return Array.from(document.querySelectorAll('#layer-people .person')).filter((g) => { const m = g.getAttribute('transform').match(/translate\(([-\d.]+)[ ,]+([-\d.]+)\)/); return m && +m[1] >= b.x && +m[1] <= b.x + b.width && +m[2] >= b.y && +m[2] <= b.y + b.height; }).length;
+  }).filter((n) => n != null));
+  if (bare.length) check(bare.every((n) => n > 0), `platform surfaces without a number have people (${bare.join(', ')})`);
+  // List mode pauses them.
+  await page.click('#mode button[data-mode="list"]');
+  const l1 = JSON.stringify(await sample()); await page.waitForTimeout(800); const l2 = JSON.stringify(await sample());
+  check(l1 === l2, 'walkers pause in list mode');
+  await page.click('#mode button[data-mode="map"]');
+  // Reduced motion: nobody moves.
+  await open('&motion=off');
+  const m1 = JSON.stringify(await sample()); await page.waitForTimeout(1500); const m2 = JSON.stringify(await sample());
+  check(m1 === m2, 'with motion=off nobody moves');
+  check(errors.length === 0, errors.length ? 'browser errors: ' + errors.join(' | ') : 'no browser errors (people)');
+  await context.close();
+  return out;
+}
+
+/* Liveries (SPEC 8): the class the contract expects from train.type, for every sample train. */
+function expectedLivery(rec) {
+  // A function, not a top-level const: the checks above run (top-level await) before this line is reached.
+  const LIVERY_BY_TYPE = { intercity: 'ns', 'intercity direct': 'ns', sprinter: 'ns', 'eurocity direct': 'ns', eurostar: 'eurostar', ice: 'ice', nightjet: 'nightjet', 'european sleeper': 'sleeper' };
+  const cat = String((rec.train && rec.train.category) || '').toLowerCase();
+  if (['ns', 'eurostar', 'ice', 'nightjet', 'sleeper', 'neutral'].includes(cat)) return cat;
+  if (cat === 'ic' || cat === 'spr') return 'ns';
+  return LIVERY_BY_TYPE[String((rec.train && rec.train.type) || '').toLowerCase().trim()] || 'neutral';
+}
+async function smokeLiveries(id, data) {
+  const out = [];
+  const check = (ok, msg) => out.push([!!ok, msg]);
+  const context = await browser.newContext({ viewport: { width: 1280, height: 800 } });
+  const page = await context.newPage();
+  const errors = [];
+  page.on('pageerror', (e) => errors.push(e.message));
+  await page.goto(server.base + 'station.html?station=' + encodeURIComponent(id) + '&lang=nl&theme=light&motion=off', { waitUntil: 'networkidle' });
+  await page.waitForFunction(() => document.documentElement.dataset.pjState === 'ready', null, { timeout: 10000 });
+  const classOf = (rid) => page.evaluate((r) => { const g = document.querySelector(`.train[data-record="${r}"]`); return g ? g.getAttribute('class') : null; }, rid);
+  const wrong = [], seen = {};
+  for (const r of data.departures || []) {
+    const cls = await classOf(r.id);
+    if (cls === null) continue; // already left
+    const want = expectedLivery(r);
+    seen[want] = (seen[want] || 0) + 1;
+    if (!cls.split(' ').includes('train--' + want)) wrong.push(`${r.id}: ${cls} (want train--${want})`);
+  }
+  // Each arrival in turn: pick it, then look at the train that comes in.
+  for (const r of data.arrivals || []) {
+    await page.evaluate((rid) => { const s = window.Perronjoy.state; window.Perronjoy.select('from', s.arrivals.find((a) => a.id === rid)); }, r.id);
+    const cls = await classOf(r.id);
+    if (cls === null) continue; // the standing train on that platform is this train
+    const want = expectedLivery(r);
+    seen[want] = (seen[want] || 0) + 1;
+    if (!cls.split(' ').includes('train--' + want)) wrong.push(`${r.id}: ${cls} (want train--${want})`);
+  }
+  check(!wrong.length, wrong.length ? 'livery classes: ' + wrong.join(' | ') : 'every sample train has its livery class (' + Object.entries(seen).map(([k, n]) => n + ' ' + k).join(', ') + ')');
+  // The livery colours come from site.css: an NS car is not the neutral body.
+  const fills = await page.evaluate(() => {
+    const car = (sel) => { const n = document.querySelector(sel + ' .train-car'); return n ? getComputedStyle(n).fill : null; };
+    const probe = document.createElementNS('http://www.w3.org/2000/svg', 'rect'); probe.setAttribute('class', 'train-car'); document.querySelector('#layer-trains').appendChild(probe);
+    const neutral = getComputedStyle(probe).fill; probe.remove();
+    return { ns: car('.train--ns'), neutral };
+  });
+  if (fills.ns) check(fills.ns !== fills.neutral, `NS livery is painted (${fills.ns}, neutral ${fills.neutral})`);
+  check(errors.length === 0, errors.length ? 'browser errors: ' + errors.join(' | ') : 'no browser errors (liveries)');
   await context.close();
   return out;
 }

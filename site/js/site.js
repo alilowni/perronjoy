@@ -25,11 +25,16 @@
   const CAR_GAP = 0.8;
   const CAR_WIDTH = 6;
   const DEFAULT_TRAIN_LENGTH = 150;
+  const WALKERS_PER_PLATFORM = 3; // walking people: at most this many per platform surface
+  const WALKERS_MAX = 20;          // and about this many on the whole map
   const OFFSCREEN = 40;       // how far beyond the track end a train starts or ends
   const LUT_STEP = 2;         // track lookup table resolution in scene units
   const ARRIVE_MS = 5200;
   const DEPART_MS = 5200;
   const CAMERA_MS = 620;
+  const TOILET_STOP_MIN = 3; // minutes for a toilet stop on the WC route, counted in the verdict (SPEC 7, Toilets)
+  const WC_HALF = 3.4;        // half the size of a WC marker, scene units
+  const WC_MIN_PX = 11;       // a WC marker never gets smaller than this on screen (whole-station view)
   const SHADOW_OFFSETS = {    // [dx, dy] per class, scene units; light comes from the top left
     'block--tall': [3.2, 4.6], block: [1.3, 1.9], building: [1.8, 2.6], tree: [0.9, 1.3], platform: [0.5, 0.8]
   };
@@ -95,6 +100,29 @@
     if (type.includes('sprinter')) return 'spr';
     if (type.includes('intercity') || type === 'ic') return 'ic';
     return 'int';
+  }
+  /* The livery of a train, from train.type (SPEC 8): toned-down operator colours, no logos.
+     train.category overrides it with a livery name; the older "ic" and "spr" mean an NS train,
+     and "int" keeps the livery of the type (or the neutral body for an unknown type). */
+  const LIVERIES = ['ns', 'eurostar', 'ice', 'nightjet', 'sleeper', 'neutral'];
+  function trainLivery(train) {
+    if (!train) return 'neutral';
+    const cat = String(train.category || '').toLowerCase();
+    if (LIVERIES.includes(cat)) return cat;
+    if (cat === 'ic' || cat === 'spr') return 'ns';
+    const type = String(train.type || '').toLowerCase().trim();
+    if (/^(intercity|intercity direct|sprinter|eurocity direct|ic|icd|spr|ecd)$/.test(type)) return 'ns';
+    if (type === 'eurostar') return 'eurostar';
+    if (type === 'ice' || type === 'ice international') return 'ice';
+    if (type === 'nightjet') return 'nightjet';
+    if (type === 'european sleeper') return 'sleeper';
+    return 'neutral';
+  }
+  /* Eurostar has two liveries: the ex-Thalys services kept their red, the London services their blue. */
+  function liveryClasses(rec) {
+    const livery = trainLivery(rec.train);
+    const london = livery === 'eurostar' && /\b(london|londen)\b/i.test([rec.destination, rec.origin].filter(Boolean).join(' '));
+    return 'train--' + livery + (london ? ' train--eurostar-london' : '');
   }
   function trainName(rec) {
     if (!rec.train) return t('train.unknown');
@@ -167,6 +195,13 @@
     platformBoxes: {}, // platform id → {x, y, width, height}
     arrivals: [], departures: [],
     from: null, to: null, route: null,
+    toNone: false,     // true when the URL asks for no next train (to=none)
+    via: qs.get('via') === 'wc' ? 'wc' : null,
+    toiletIds: [],     // ids of the toilet nodes
+    adj: null,         // walking graph adjacency, built once
+    badgeBoxes: [],    // platform badge boxes, so WC markers can stay clear of them
+    wcMarkers: [],     // {id, g, x, y}
+    walkers: [], stopWalkers: null,
     trains: {},        // record id → train
     loadTime: Date.now(),
     frameMode: 'whole', mode: 'map', cancelCamera: null
@@ -196,6 +231,7 @@
     buildTrackArt();
     readNodes();
     buildPlatformBadges();
+    buildToiletMarkers();
     sprinklePeople();
     applySceneLabels();
     buildEndLabels();
@@ -203,6 +239,7 @@
     buildFrameButtons();
     buildModeSwitch();
     buildSelectors();
+    buildWcToggle();
     resolveSelectionFromUrl();
     placeStandingTrains();
     renderAll({ animate: false });
@@ -360,6 +397,7 @@
       else { node.x = NaN; node.y = NaN; node.missing = true; }
       if (!node.level) node.level = 'platform';
       S.nodes[n.id] = node;
+      if (node.kind === 'toilet') S.toiletIds.push(n.id);
     });
     (S.data.platforms || []).forEach((p) => {
       const r = svg.querySelector('#platform-' + cssId(p.id));
@@ -377,6 +415,7 @@
       const w = String(p.id).length > 1 ? 10 : 8;
       [0.18, 0.82].forEach((f) => {
         const cy = b.y + b.height * f;
+        S.badgeBoxes.push({ x: cx - w / 2, y: cy - 4, width: w, height: 8 });
         const g = svgEl('g', { class: 'badge', 'data-platform': p.id });
         g.appendChild(svgEl('rect', { class: 'badge-bg', x: cx - w / 2, y: cy - 4, width: w, height: 8, rx: 2 }));
         g.appendChild(svgEl('text', { class: 'badge-text', x: cx, y: cy + 1.9 }, [String(p.id)]));
@@ -385,24 +424,126 @@
     });
   }
 
+  /* A small WC marker at every toilet node: above the scene and the badges, below the route.
+     It moves aside when it would cover a platform badge (SPEC 7, Toilets). */
+  function buildToiletMarkers() {
+    const svg = S.svg;
+    if (!S.toiletIds.length) return;
+    let layer = svg.querySelector('#layer-wc');
+    if (!layer) { layer = svgEl('g', { id: 'layer-wc', 'aria-hidden': 'true' }); svg.querySelector('#layer-route').before(layer); }
+    const hits = (x, y) => S.badgeBoxes.filter((b) => x + WC_HALF > b.x - 0.6 && x - WC_HALF < b.x + b.width + 0.6 && y + WC_HALF > b.y - 0.6 && y - WC_HALF < b.y + b.height + 0.6);
+    S.toiletIds.forEach((id) => {
+      const n = S.nodes[id]; if (!n || isNaN(n.x)) return;
+      let x = n.x, y = n.y;
+      const over = hits(x, y);
+      if (over.length) {
+        // The smallest move left, right, up or down that clears every badge.
+        const b = over[0];
+        const moves = [[b.x - 0.6 - WC_HALF - x, 0], [b.x + b.width + 0.6 + WC_HALF - x, 0], [0, b.y - 0.6 - WC_HALF - y], [0, b.y + b.height + 0.6 + WC_HALF - y]]
+          .filter(([dx, dy]) => !hits(x + dx, y + dy).length)
+          .sort((m1, m2) => Math.hypot(m1[0], m1[1]) - Math.hypot(m2[0], m2[1]));
+        if (moves.length) { x += moves[0][0]; y += moves[0][1]; }
+      }
+      const g = svgEl('g', { class: 'wc-marker', 'data-node': id, transform: 'translate(' + x.toFixed(2) + ' ' + y.toFixed(2) + ')' });
+      g.appendChild(svgEl('rect', { class: 'wc-bg', x: -WC_HALF, y: -WC_HALF, width: WC_HALF * 2, height: WC_HALF * 2, rx: 1.7 }));
+      g.appendChild(svgEl('text', { class: 'wc-text', x: 0, y: 1.25 }, [t('wc.marker')]));
+      layer.appendChild(g);
+      S.wcMarkers.push({ id, g, x, y });
+    });
+  }
+  /* Keep the WC markers readable when the camera shows the whole station: scale them up, transform only. */
+  function scaleToiletMarkers(vb) {
+    if (!S.wcMarkers.length) return;
+    const mapWrap = $('#map');
+    const W = mapWrap.clientWidth || 390, H = mapWrap.clientHeight || 600;
+    const pxPerUnit = Math.max(W / vb.width, H / vb.height);
+    const k = Math.min(3.2, Math.max(1, WC_MIN_PX / (WC_HALF * 2 * pxPerUnit)));
+    if (S.wcScale === k) return;
+    S.wcScale = k;
+    S.wcMarkers.forEach((m) => m.g.setAttribute('transform', 'translate(' + m.x.toFixed(2) + ' ' + m.y.toFixed(2) + ') scale(' + k.toFixed(3) + ')'));
+  }
+
+  /* Tiny neutral people on every platform surface: numbered platform rects and platform rects without a
+     number (a section rect lies on its platform, which already has people). About one in four walk. */
   function sprinklePeople() {
     const svg = S.svg;
     let layer = svg.querySelector('#layer-people');
     if (!layer) { layer = svgEl('g', { id: 'layer-people', 'aria-hidden': 'true' }); (svg.querySelector('#layer-platforms') || svg.querySelector('#layer-badges')).after(layer); }
-    (S.data.platforms || []).forEach((p) => {
-      const b = S.platformBoxes[p.id]; if (!b) return;
-      const rnd = mulberry32(hashSeed(S.data.id + ':' + p.id));
+    const candidates = [];
+    $$('#layer-platforms rect.platform', svg).forEach((r, idx) => {
+      if (/^platform-\d+[a-z]$/.test(r.id)) return;
+      const b = r.getBBox();
+      if (b.width < 6 || b.height < 14) return;
+      const num = (r.id.match(/^platform-(\d+)$/) || [])[1];
+      const rnd = mulberry32(hashSeed(S.data.id + ':' + (num || 'surface-' + idx)));
+      const pickWalker = mulberry32(hashSeed(S.data.id + ':walkers:' + (num || 'surface-' + idx))); // its own stream: the standing people stay where they were
       const count = Math.min(14, Math.floor((b.width * b.height) / 650));
+      // The lane people stay in: the same margins as the standing people.
+      const box = { x1: b.x + 2.5, x2: b.x + Math.max(2.5, b.width - 2.5), y1: b.y + 6, y2: b.y + Math.max(6, b.height - 6) };
+      let walkers = 0;
       for (let i = 0; i < count; i++) {
-        const x = b.x + 2.5 + rnd() * Math.max(0, b.width - 5);
-        const y = b.y + 6 + rnd() * Math.max(0, b.height - 12);
-        const g = svgEl('g', { class: 'person' });
-        g.appendChild(svgEl('circle', { cx: x.toFixed(1), cy: y.toFixed(1), r: 0.7 }));
-        g.appendChild(svgEl('rect', { x: (x - 0.6).toFixed(1), y: (y + 0.6).toFixed(1), width: 1.2, height: 1.7, rx: 0.4 }));
+        const x = box.x1 + rnd() * (box.x2 - box.x1);
+        const y = box.y1 + rnd() * (box.y2 - box.y1);
+        const g = svgEl('g', { class: 'person', transform: 'translate(' + x.toFixed(1) + ' ' + y.toFixed(1) + ')' });
+        g.appendChild(svgEl('circle', { cx: 0, cy: 0, r: 0.7 }));
+        g.appendChild(svgEl('rect', { x: -0.6, y: 0.6, width: 1.2, height: 1.7, rx: 0.4 }));
         layer.appendChild(g);
+        // About one in four may walk, at most three per platform (picked below: about twenty on the map).
+        if (walkers < WALKERS_PER_PLATFORM && pickWalker() < 0.25) { walkers++; candidates.push({ g, box, x, y, seed: hashSeed(S.data.id + ':walk:' + (num || idx) + ':' + i) }); }
       }
     });
+    // Spread the walkers over the whole map, evenly and the same on every load.
+    const n = Math.min(WALKERS_MAX, candidates.length);
+    for (let k = 0; k < n; k++) {
+      const c = candidates[Math.floor(k * candidates.length / n)];
+      const rnd = mulberry32(c.seed);
+      c.g.classList.add('is-walker');
+      c.g.setAttribute('data-box', [c.box.x1, c.box.y1, c.box.x2, c.box.y2].map((v) => v.toFixed(2)).join(' '));
+      S.walkers.push({ g: c.g, box: c.box, x: c.x, y: c.y, rnd, speed: 0.6 + rnd() * 0.4, pause: 400 + rnd() * 3200, leg: null });
+    }
+    startWalkers();
+    document.addEventListener('visibilitychange', () => { if (document.hidden) stopWalkers(); else startWalkers(); });
   }
+  /* Walking people: slow (0.6–1.0 units/s), along their platform, with short pauses and smooth starts and
+     stops. One task on the shared ticker; transforms only, no layout reads. Still under reduced motion,
+     in list mode and while the page is hidden. */
+  function stepWalker(w, dt) {
+    if (!w.leg) {
+      w.pause -= dt;
+      if (w.pause > 0) return false;
+      const { x1, x2, y1, y2 } = w.box;
+      const len = 8 + w.rnd() * 30;
+      let dir = w.rnd() < 0.5 ? -1 : 1;
+      if (w.y + dir * len > y2 || w.y + dir * len < y1) dir = -dir;
+      const ty = Math.min(y2, Math.max(y1, w.y + dir * len));
+      const tx = Math.min(x2, Math.max(x1, w.x + (w.rnd() - 0.5) * 3));
+      const dist = Math.hypot(tx - w.x, ty - w.y);
+      // Speed up and slow down over 0.6 s, walk at w.speed in between: the top speed is w.speed.
+      const ramp = 600, ms = dist / w.speed * 1000 + ramp;
+      w.leg = { fx: w.x, fy: w.y, tx, ty, t: 0, ms, a: ramp / ms };
+    }
+    const leg = w.leg;
+    leg.t = Math.min(leg.ms, leg.t + dt);
+    const k = leg.t / leg.ms, a = leg.a;
+    const e = (k < a ? k * k / (2 * a) : (k > 1 - a ? 1 - a - (1 - k) * (1 - k) / (2 * a) : a / 2 + k - a)) / (1 - a); // smooth start and stop, no sudden turns
+    w.x = leg.fx + (leg.tx - leg.fx) * e;
+    w.y = leg.fy + (leg.ty - leg.fy) * e;
+    if (k >= 1) { w.leg = null; w.pause = 1200 + w.rnd() * 2800; }
+    return true;
+  }
+  function startWalkers() {
+    if (MOTION_OFF || S.stopWalkers || !S.walkers.length || S.mode !== 'map' || document.hidden) return;
+    let last = performance.now();
+    S.stopWalkers = ticker.add((now) => {
+      const dt = Math.min(100, now - last); last = now;
+      for (let i = 0; i < S.walkers.length; i++) {
+        const w = S.walkers[i];
+        if (stepWalker(w, dt)) w.g.setAttribute('transform', 'translate(' + w.x.toFixed(2) + ' ' + w.y.toFixed(2) + ')');
+      }
+      return true;
+    });
+  }
+  function stopWalkers() { if (S.stopWalkers) { S.stopWalkers(); S.stopWalkers = null; } }
 
   /* Scene text is Dutch in the file; data-en holds the English text. */
   function applySceneLabels() {
@@ -452,6 +593,7 @@
     $$('#mode button').forEach((btn) => btn.setAttribute('aria-pressed', btn.dataset.mode === mode ? 'true' : 'false'));
     $('#map').hidden = mode !== 'map';
     $('#list').hidden = mode !== 'list';
+    if (mode === 'map') startWalkers(); else stopWalkers();
     if (mode === 'map') frame(S.frameMode, true);
   }
 
@@ -473,14 +615,16 @@
   function resolveSelectionFromUrl() {
     const fromKey = qs.get('from'), toKey = qs.get('to');
     S.from = findRecord(S.arrivals, fromKey) || (fromKey ? syntheticRecord('arr', fromKey) : null) || S.arrivals[0] || null;
-    S.to = findRecord(S.departures, toKey) || (toKey ? syntheticRecord('dep', toKey) : null) || null;
-    if (!S.to) S.to = S.departures.find((d) => !S.from || String(d.platform) !== String(S.from.platform)) || S.departures[0] || null;
+    S.toNone = toKey === 'none';
+    S.to = S.toNone ? null : (findRecord(S.departures, toKey) || (toKey ? syntheticRecord('dep', toKey) : null) || null);
+    if (!S.to && !S.toNone) S.to = S.departures.find((d) => !S.from || String(d.platform) !== String(S.from.platform)) || S.departures[0] || null;
     computeRoute();
   }
   function updateUrl() {
     const p = new URLSearchParams(location.search);
     if (S.from) p.set('from', keyOf(S.from)); else p.delete('from');
-    if (S.to) p.set('to', keyOf(S.to)); else p.delete('to');
+    if (S.to) p.set('to', keyOf(S.to)); else if (S.toNone) p.set('to', 'none'); else p.delete('to');
+    if (S.via === 'wc') p.set('via', 'wc'); else p.delete('via');
     history.replaceState(null, '', location.pathname + '?' + p.toString());
   }
   function select(kind, rec) {
@@ -490,7 +634,7 @@
       const old = S.from && S.trains[S.from.id];
       if (old && old.kind === 'arr') { if (old.cancel) old.cancel(); old.g.remove(); delete S.trains[S.from.id]; }
       S.from = rec;
-    } else S.to = rec;
+    } else { S.to = rec; S.toNone = false; }
     computeRoute();
     updateUrl();
     renderAll({ animate: true });
@@ -498,28 +642,248 @@
     if (S.mode === 'map') frame('transfer');
   }
 
-  function buildSelectors() {
-    const fromSel = $('#sel-from'), toSel = $('#sel-to');
-    fromSel.addEventListener('change', () => select('from', findRecord(S.arrivals, fromSel.value) || syntheticRecord('arr', fromSel.value)));
-    toSel.addEventListener('change', () => select('to', findRecord(S.departures, toSel.value) || syntheticRecord('dep', toSel.value)));
+  /* ---------- search and select: one field per choice (WAI-ARIA combobox with a listbox) ---------- */
+  const STOP_WORDS = new Set(['spoor', 'perron', 'platform', 'track', 'pf', 'uit', 'from', 'naar', 'to', 'trein', 'train']);
+  const ALIASES = [['the hague', 'den haag'], ['hague', 'haag'], ['paris', 'parijs'], ['brussels', 'brussel'], ['antwerp', 'antwerpen'],
+    ['cologne', 'keulen'], ['london', 'londen'], ['icd', 'intercity direct'], ['ic', 'intercity'], ['spr', 'sprinter']];
+  function normText(str) { return String(str || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase(); }
+  /* The words of a query: no accents, no case, no "spoor"/"platform"/…, English names to Dutch ones. */
+  function queryTokens(q) {
+    let n = ' ' + normText(q).replace(/([a-z]{2,})(\d)/g, '$1 $2').replace(/(\d)([a-z]{2,})/g, '$1 $2').replace(/[^a-z0-9]+/g, ' ') + ' ';
+    ALIASES.forEach(([from, to]) => { n = n.split(' ' + from + ' ').join(' ' + to + ' '); });
+    const out = [];
+    n.trim().split(/\s+/).forEach((tok) => {
+      if (!tok || STOP_WORDS.has(tok)) return;
+      if (/^[a-z]$/.test(tok) && out.length && /^\d+$/.test(out[out.length - 1])) out[out.length - 1] += tok; // "5 b" is "5b"
+      else out.push(tok);
+    });
+    return out;
   }
+  /* Does an option match every word? Returns null, or {platform: true} when a number matched its platform. */
+  function matchOption(opt, toks) {
+    let platform = false;
+    for (const tok of toks) {
+      if (/^\d+$/.test(tok)) {
+        const pf = opt.platform === tok, train = !!(opt.trainNo && opt.trainNo.startsWith(tok));
+        if (!pf && !train) return null;
+        if (pf) platform = true;
+      } else if (/^\d+[a-z]$/.test(tok)) {
+        if (opt.pfLabel !== tok) return null;
+        platform = true;
+      } else if (!opt.words.some((w) => w.startsWith(tok))) return null;
+    }
+    return { platform };
+  }
+
+  const combos = {};
+  function buildSelectors() {
+    ['from', 'to'].forEach((kind) => { combos[kind] = makeCombo(kind); });
+    document.addEventListener('pointerdown', (e) => {
+      Object.values(combos).forEach((c) => { if (c.isOpen() && !c.root.contains(e.target)) c.close(true); });
+    });
+  }
+  function makeCombo(kind) {
+    const input = $('#sel-' + kind), list = $('#list-' + kind), root = $('#combo-' + kind);
+    const clearBtn = root.querySelector('.combo-clear'), openBtn = root.querySelector('.combo-open'), status = $('#status-' + kind);
+    let options = [], shown = [], active = -1, open = false, current = null, statusTimer = 0;
+
+    const setExpanded = (v) => { input.setAttribute('aria-expanded', v ? 'true' : 'false'); openBtn.setAttribute('aria-expanded', v ? 'true' : 'false'); root.classList.toggle('is-open', v); };
+    const currentText = () => (current ? current.text : '');
+    const syncClear = () => { clearBtn.hidden = !(open && input.value); };
+    // Select the whole text so typing replaces it, with the caret at the start so the field shows the beginning.
+    const selectAll = () => { try { input.setSelectionRange(0, input.value.length, 'backward'); } catch (e) { input.select(); } input.scrollLeft = 0; };
+    function setOptions(opts, currentKey) {
+      options = opts;
+      current = opts.find((o) => o.key === currentKey) || null;
+      if (open) render(); else { input.value = currentText(); syncClear(); }
+    }
+    function filter() {
+      const q = input.value === currentText() ? '' : input.value;
+      const toks = queryTokens(q);
+      if (!toks.length) return options.slice();
+      const hits = [];
+      options.forEach((o, i) => { const m = matchOption(o, toks); if (m) hits.push({ o, i, pf: m.platform }); });
+      // Platform matches first, then the rest, each in list order.
+      hits.sort((x, y) => (x.pf === y.pf ? x.i - y.i : (x.pf ? -1 : 1)));
+      return hits.map((h) => h.o);
+    }
+    function render() {
+      shown = filter();
+      list.innerHTML = '';
+      if (!shown.length) {
+        list.appendChild(el('li', { class: 'combo-empty', role: 'option', 'aria-disabled': 'true', id: 'opt-' + kind + '-none', text: t('combo.noResult') }));
+        setActive(-1);
+      } else {
+        shown.forEach((o, i) => {
+          const li = el('li', { class: 'combo-opt' + (current && o.key === current.key ? ' is-current' : '') + (o.rec ? '' : ' is-plain'), role: 'option', id: 'opt-' + kind + '-' + i, 'aria-selected': 'false', 'aria-label': o.text + (o.when ? ' · ' + o.when : ''), 'data-key': o.key }, [
+            el('span', { class: 'pf' }, [el('small', { text: t('dep.pf') }), el('b', { text: o.pfLabel })]),
+            el('span', { class: 'txt' }, [el('span', { class: 'name', text: o.name }), o.detail ? el('span', { class: 'detail', text: o.detail }) : null]),
+            o.when ? el('span', { class: 'when', text: o.when }) : null
+          ]);
+          li.addEventListener('click', () => pick(i, true));
+          list.appendChild(li);
+        });
+        if (active >= shown.length) active = shown.length - 1;
+        setActive(active);
+      }
+      clearTimeout(statusTimer);
+      statusTimer = setTimeout(() => { status.textContent = !shown.length ? t('combo.noResult') : (shown.length === 1 ? t('combo.countOne') : t('combo.count', { n: shown.length })); }, 250);
+    }
+    function setActive(i) {
+      active = i;
+      $$('.combo-opt[aria-selected="true"]', list).forEach((n) => n.setAttribute('aria-selected', 'false'));
+      const li = i >= 0 ? $('#opt-' + kind + '-' + i) : null;
+      if (li) { li.setAttribute('aria-selected', 'true'); input.setAttribute('aria-activedescendant', li.id); keepInList(li); }
+      else input.removeAttribute('aria-activedescendant');
+      // The matching platform comes up: a quiet outline on the map, the camera stays put.
+      previewPlatform(i >= 0 && shown[i] ? shown[i] : null);
+    }
+    function keepInList(li) {
+      // Scroll the list only, never the page.
+      if (li.offsetTop < list.scrollTop) list.scrollTop = li.offsetTop - 6;
+      else if (li.offsetTop + li.offsetHeight > list.scrollTop + list.clientHeight) list.scrollTop = li.offsetTop + li.offsetHeight - list.clientHeight + 6;
+    }
+    function placeList() {
+      // Open below the field, or above it when there is more room there; the list scrolls.
+      const r = input.getBoundingClientRect();
+      const vh = window.visualViewport ? window.visualViewport.height : window.innerHeight;
+      const below = vh - r.bottom - 12, above = r.top - 72;
+      const up = below < 220 && above > below;
+      root.classList.toggle('is-up', up);
+      list.style.maxHeight = Math.max(160, Math.min(360, up ? above : below)) + 'px';
+    }
+    function openList() {
+      if (open) return;
+      open = true;
+      active = -1;
+      render();
+      const i = current ? shown.indexOf(current) : -1;
+      setActive(i >= 0 ? i : (shown.length ? 0 : -1));
+      list.hidden = false;
+      setExpanded(true);
+      syncClear();
+      // On a phone, bring the field up under the header so the list has room below it.
+      const r = input.getBoundingClientRect();
+      const vh = window.visualViewport ? window.visualViewport.height : window.innerHeight;
+      if (window.innerWidth < 900 && vh - r.bottom < 300 && r.top > 104) window.scrollBy(0, r.top - 104);
+      placeList();
+      const li = active >= 0 ? $('#opt-' + kind + '-' + active) : null;
+      if (li) keepInList(li);
+    }
+    function close(restore) {
+      if (!open) { if (restore) { input.value = currentText(); syncClear(); } return; }
+      open = false;
+      list.hidden = true;
+      setExpanded(false);
+      input.removeAttribute('aria-activedescendant');
+      previewPlatform(null);
+      if (restore) input.value = currentText();
+      syncClear();
+    }
+    function pick(i, byPointer) {
+      const o = shown[i]; if (!o) return;
+      close(false);
+      current = o;
+      input.value = o.text;
+      syncClear();
+      if (byPointer) input.blur(); // on a phone this also closes the keyboard
+      select(kind, o.rec || syntheticRecord(kind === 'from' ? 'arr' : 'dep', o.key));
+    }
+    input.addEventListener('focus', () => {
+      openList();
+      selectAll();
+      // Again after the click that focused it (a mouseup would clear the selection), unless typing has begun.
+      requestAnimationFrame(() => { if (document.activeElement === input && input.value === currentText()) selectAll(); });
+    });
+    input.addEventListener('click', () => openList());
+    input.addEventListener('input', () => { if (!open) openList(); render(); setActive(shown.length ? 0 : -1); syncClear(); });
+    input.addEventListener('blur', () => close(true));
+    input.addEventListener('keydown', (e) => {
+      const last = shown.length - 1;
+      switch (e.key) {
+        case 'ArrowDown':
+          e.preventDefault();
+          if (!open) { openList(); return; }
+          if (!e.altKey && shown.length) setActive(Math.min(last, active + 1));
+          break;
+        case 'ArrowUp':
+          e.preventDefault();
+          if (!open) { openList(); return; }
+          if (e.altKey) { if (active >= 0) pick(active, false); else close(true); return; }
+          if (shown.length) setActive(Math.max(0, active - 1));
+          break;
+        case 'Home': if (open && shown.length) { e.preventDefault(); setActive(0); } break;
+        case 'End': if (open && shown.length) { e.preventDefault(); setActive(last); } break;
+        case 'Enter':
+          if (!open) return;
+          e.preventDefault();
+          if (active >= 0) pick(active, false); else if (shown.length) pick(0, false);
+          break;
+        case 'Escape':
+          // Close and bring the previous choice back.
+          e.preventDefault();
+          close(true);
+          selectAll();
+          break;
+        case 'Tab': close(true); break;
+        default: break;
+      }
+    });
+    // Keep the focus in the field while tapping in the list or on its buttons.
+    [list, clearBtn, openBtn].forEach((n) => n.addEventListener('mousedown', (e) => e.preventDefault()));
+    clearBtn.addEventListener('click', () => { input.value = ''; input.focus(); if (!open) openList(); render(); setActive(shown.length ? 0 : -1); syncClear(); });
+    openBtn.addEventListener('click', () => { if (open) close(true); else { input.focus(); openList(); } });
+    window.addEventListener('resize', () => { if (open) placeList(); });
+    return { root, setOptions, close, isOpen: () => open };
+  }
+  function previewPlatform(opt) {
+    if (!S.svg) return;
+    $$('.preview', S.svg).forEach((n) => n.remove());
+    if (!opt) return;
+    const target = (opt.section && S.svg.querySelector('#platform-' + cssId(opt.platform + opt.section))) || S.svg.querySelector('#platform-' + cssId(opt.platform));
+    if (!target || !target.getBBox) return;
+    const b = target.getBBox();
+    target.after(svgEl('rect', { class: 'preview', x: b.x - 0.8, y: b.y - 0.8, width: b.width + 1.6, height: b.height + 1.6, rx: (Number(target.getAttribute('rx')) || 3) + 0.8, 'aria-hidden': 'true' }));
+  }
+
+  function buildWcToggle() {
+    const box = $('#wc-toggle');
+    if (!box) return;
+    box.checked = S.via === 'wc';
+    box.addEventListener('change', () => {
+      S.via = box.checked ? 'wc' : null;
+      computeRoute();
+      updateUrl();
+      renderAll({ animate: true });
+      if (S.mode === 'map') frame('transfer');
+    });
+  }
+
+  /* The options, in the same order as always: the sample records, then every other platform and section. */
   function fillSelectors() {
-    const fromSel = $('#sel-from'), toSel = $('#sel-to');
-    fromSel.innerHTML = ''; toSel.innerHTML = '';
+    if (!combos.from) return;
     const pfWord = t('dep.platform');
-    const fill = (sel, records, current, describe) => {
-      records.forEach((r) => sel.appendChild(el('option', { value: r.id, text: pfWord + ' ' + platformLabel(r.platform, r.section) + ' · ' + describe(r) })));
+    const optionsFor = (kind, records, describe) => {
+      const out = [];
+      records.forEach((r) => {
+        const pfLabel = platformLabel(r.platform, r.section), d = describe(r);
+        out.push({
+          key: r.id, rec: r, platform: String(r.platform), section: r.section || null, pfLabel, trainNo: r.train ? String(r.train.number || '') : '',
+          name: trainName(r), detail: d, when: whenText(r), text: pfWord + ' ' + pfLabel + ' · ' + trainName(r) + (d ? ' ' + d : ''),
+          words: normText([r.train && r.train.type, r.destination, r.origin].filter(Boolean).join(' ')).split(/[^a-z0-9]+/).filter(Boolean)
+        });
+      });
       (S.data.platforms || []).forEach((p) => {
         (p.sections && p.sections.length ? p.sections : [null]).forEach((sec) => {
           const key = platformLabel(p.id, sec);
           if (records.some((r) => platformLabel(r.platform, r.section) === key)) return;
-          sel.appendChild(el('option', { value: key, text: pfWord + ' ' + key }));
+          out.push({ key, rec: null, platform: String(p.id), section: sec, pfLabel: key, trainNo: '', name: pfWord + ' ' + key, detail: '', when: '', text: pfWord + ' ' + key, words: [] });
         });
       });
-      if (current) sel.value = keyOf(current);
+      return out;
     };
-    fill(fromSel, S.arrivals, S.from, (r) => trainName(r) + (r.origin ? ' ' + t('train.from', { x: r.origin }) : ''));
-    fill(toSel, S.departures, S.to, (r) => trainName(r) + (r.destination ? ' ' + t('train.to', { x: r.destination }) : ''));
+    combos.from.setOptions(optionsFor('from', S.arrivals, (r) => (r.origin ? t('train.from', { x: r.origin }) : '')), S.from ? keyOf(S.from) : null);
+    combos.to.setOptions(optionsFor('to', S.departures, (r) => (r.destination ? t('train.to', { x: r.destination }) : '')), S.to ? keyOf(S.to) : null);
   }
 
   /* ---------- time ---------- */
@@ -548,35 +912,81 @@
     const sec = rec.section && (p.sections || []).includes(rec.section) ? rec.section : ((p.sections || [])[0] || '');
     return 'p' + p.id + sec;
   }
-  function computeRoute() {
-    S.route = null;
-    const a = platformNodeId(S.from), b = platformNodeId(S.to);
-    if (!a || !b || !S.nodes[a] || !S.nodes[b]) return;
-    if (a === b) { S.route = { nodes: [a], edges: [], seconds: 0, same: true }; return; }
+  function graph() {
+    if (S.adj) return S.adj;
     const adj = {};
     (S.data.edges || []).forEach((e) => {
       if (!S.nodes[e.from] || !S.nodes[e.to]) return;
       (adj[e.from] = adj[e.from] || []).push({ to: e.to, edge: e });
       (adj[e.to] = adj[e.to] || []).push({ to: e.from, edge: e });
     });
-    const dist = { [a]: 0 }, prev = {}, prevEdge = {}, done = {};
-    const pending = new Set([a]);
+    S.adj = adj;
+    return adj;
+  }
+  /* Shortest walking times from one node. A route never passes through a toilet:
+     a toilet can be where it starts or ends, never a shortcut (SPEC 7, Toilets). */
+  function shortest(src, stopAt) {
+    const adj = graph();
+    const dist = { [src]: 0 }, prev = {}, prevEdge = {}, done = {};
+    const pending = new Set([src]);
     while (pending.size) {
       let u = null;
       pending.forEach((k) => { if (u === null || dist[k] < dist[u]) u = k; });
       pending.delete(u); done[u] = true;
-      if (u === b) break;
+      if (u === stopAt) break;
+      if (u !== src && S.nodes[u] && S.nodes[u].kind === 'toilet') continue;
       (adj[u] || []).forEach(({ to, edge }) => {
         if (done[to]) return;
         const nd = dist[u] + (Number(edge.seconds) || 0);
         if (dist[to] == null || nd < dist[to]) { dist[to] = nd; prev[to] = u; prevEdge[to] = edge; pending.add(to); }
       });
     }
-    if (dist[b] == null) return;
-    const nodes = [b], edges = [];
-    let cur = b;
-    while (cur !== a) { edges.unshift(prevEdge[cur]); cur = prev[cur]; nodes.unshift(cur); }
-    S.route = { nodes, edges, seconds: dist[b], same: false };
+    return { src, dist, prev, prevEdge };
+  }
+  function pathTo(tree, dst) {
+    if (tree.dist[dst] == null) return null;
+    const nodes = [dst], edges = [];
+    let cur = dst;
+    while (cur !== tree.src) { edges.unshift(tree.prevEdge[cur]); cur = tree.prev[cur]; nodes.unshift(cur); }
+    return { nodes, edges, seconds: tree.dist[dst] };
+  }
+  function computeRoute() {
+    S.route = null;
+    S.wcMissing = false;
+    const a = platformNodeId(S.from), b = S.to ? platformNodeId(S.to) : null;
+    if (!a || !S.nodes[a]) return;
+    const hasB = !!(b && S.nodes[b]);
+    if (S.via === 'wc') {
+      const fromA = shortest(a);
+      if (hasB) {
+        // The toilet that gives the shortest total walk: arrival → toilet → next train.
+        const fromB = shortest(b);
+        let best = null;
+        S.toiletIds.forEach((id) => {
+          if (fromA.dist[id] == null || fromB.dist[id] == null) return;
+          const total = fromA.dist[id] + fromB.dist[id];
+          if (!best || total < best.total) best = { id, total };
+        });
+        if (best) {
+          const there = pathTo(fromA, best.id), back = pathTo(fromB, best.id);
+          const backNodes = back.nodes.slice().reverse(), backEdges = back.edges.slice().reverse();
+          S.route = { nodes: there.nodes.concat(backNodes.slice(1)), edges: there.edges.concat(backEdges), seconds: best.total, same: false, wc: best.id, wcIndex: there.nodes.length - 1 };
+          return;
+        }
+        S.wcMissing = true;
+      } else {
+        // No next train: the nearest toilet.
+        let best = null;
+        S.toiletIds.forEach((id) => { if (fromA.dist[id] != null && (!best || fromA.dist[id] < best.d)) best = { id, d: fromA.dist[id] }; });
+        if (best) { const there = pathTo(fromA, best.id); S.route = Object.assign(there, { same: false, wc: best.id, wcIndex: there.nodes.length - 1, toWc: true }); return; }
+        S.wcMissing = true;
+        return;
+      }
+    }
+    if (!hasB) return;
+    if (a === b) { S.route = { nodes: [a], edges: [], seconds: 0, same: true }; return; }
+    const route = pathTo(shortest(a, b), b);
+    if (route) S.route = Object.assign(route, { same: false });
   }
 
   function durationText(seconds) {
@@ -587,13 +997,22 @@
     if (n.kind === 'platform') return t('dep.platform').toLowerCase() + ' ' + platformLabel(n.platform, n.section);
     return n.id;
   }
+  function capitalize(text) { return text ? text.charAt(0).toUpperCase() + text.slice(1) : text; }
+  /* Notes on a toilet: paid, wheelchair toilet, outside the gates (SPEC 7, Toilets). */
+  function toiletNotes(n) {
+    const notes = [];
+    if (n.paid) notes.push(t('wc.paid'));
+    if (n.accessible) notes.push(t('wc.accessible'));
+    if (n.outside_gates) notes.push(t('wc.outside'));
+    return notes;
+  }
   function buildSteps() {
     const route = S.route;
     const steps = [];
     if (!route) return steps;
     const from = S.from, to = S.to;
     steps.push({ key: 'start', text: t('step.getOff', { pf: platformLabel(from.platform, from.section) }), node: route.nodes[0] });
-    if (route.same) { steps.push({ key: 'end', text: t('transfer.same'), node: route.nodes[0] }); return steps; }
+    if (route.same) { steps.push({ key: 'end', text: t('transfer.same'), node: route.nodes[0] }); return number(steps); }
     let carry = 0;
     let prev = S.nodes[route.nodes[0]]; // the last node that is not a waypoint: a waypoint only bends the line
     for (let i = 0; i < route.edges.length; i++) {
@@ -602,12 +1021,14 @@
       if (v.kind === 'waypoint') continue;
       const from = prev; prev = v;
       const isLast = i === route.edges.length - 1;
+      const atWc = route.wc != null && i + 1 === route.wcIndex;
       const lu = S.levelPos[u.level] || 0, lv = S.levelPos[v.level] || 0;
       const label = nodeLabel(v);
       const kind = String(e.kind || 'walk');
       let text;
       if (kind === 'walk' || lu === lv) {
-        if (v.kind === 'hall' || v.kind === 'passage') text = t('step.walkThrough', { x: label });
+        if (v.kind === 'toilet') text = t('step.walkTo', { x: label });
+        else if (v.kind === 'hall' || v.kind === 'passage') text = t('step.walkThrough', { x: label });
         else if (from.kind === 'platform' && v.kind !== 'platform' && (S.levelPos[from.level] || 0) === lv) text = t('step.walkAlong', { x: label });
         else text = t('step.walkTo', { x: label });
       } else {
@@ -617,17 +1038,29 @@
         text = t(map[kind] || (up ? 'step.stairsUp' : 'step.stairsDown'), { x: v.short ? pick(v.short) : label });
       }
       const last = steps[steps.length - 1];
-      if (last && last.key === 'step' && last.text === text) {
+      if (last && last.key === 'step' && last.text === text && !atWc) {
         // The same instruction twice in a row (two nodes in one tunnel): merge.
         last.seconds += carry; last.node = v.id; last.isLast = isLast; last.sub = durationText(last.seconds);
       } else {
-        steps.push({ key: 'step', text, sub: durationText(carry), seconds: carry, node: v.id, isLast });
+        steps.push({ key: 'step', text, sub: durationText(carry), seconds: carry, node: v.id, isLast: isLast && !atWc, atWc });
       }
       carry = 0;
+      if (atWc) {
+        // The toilet stop: "Toiletbezoek, ongeveer 3 min", with the notes on this toilet.
+        steps.push({ key: route.toWc ? 'end' : 'wc', wc: true, text: t('wc.stop', { m: TOILET_STOP_MIN }), sub: toiletNotes(v).join(' · ') || null, node: v.id });
+      }
     }
-    const ends = S.data.ends || {};
-    const towards = to.to_end && ends[to.to_end] ? t('step.arriveTowards', { x: pick(ends[to.to_end].towards) }) : null;
-    steps.push({ key: 'end', text: t('step.arrive', { pf: platformLabel(to.platform, to.section) }), sub: towards, node: route.nodes[route.nodes.length - 1] });
+    if (!route.toWc) {
+      const ends = S.data.ends || {};
+      const towards = to.to_end && ends[to.to_end] ? t('step.arriveTowards', { x: pick(ends[to.to_end].towards) }) : null;
+      steps.push({ key: 'end', text: t('step.arrive', { pf: platformLabel(to.platform, to.section) }), sub: towards, node: route.nodes[route.nodes.length - 1] });
+    }
+    return number(steps);
+  }
+  /* Step numbers, shared by the list and the map markers. The toilet stop has "WC" instead of a number. */
+  function number(steps) {
+    let n = 0;
+    steps.forEach((st) => { if (st.wc) st.num = null; else st.num = ++n; });
     return steps;
   }
 
@@ -655,12 +1088,21 @@
       const node = S.nodes[st.node]; if (!node || isNaN(node.x)) return;
       const cls = 'route-marker' + (enter ? ' is-entering' : '');
       if (st.key === 'start') { layer.appendChild(svgEl('circle', { class: cls + ' route-start', cx: node.x, cy: node.y, r: 2.6 })); return; }
-      if (st.key === 'end') { layer.appendChild(svgEl('circle', { class: cls + ' route-end', cx: node.x, cy: node.y, r: 2.6, style: '--i:' + (n + 1) })); return; }
       n += 1;
+      // The toilet stop: a "WC" marker on the route instead of a number (the step before it ends at the same place).
+      if (st.atWc) return;
+      if (st.wc) {
+        const g = svgEl('g', { class: cls + ' route-wc', style: '--i:' + n });
+        g.appendChild(svgEl('rect', { class: 'route-wc-bg', x: node.x - 3.7, y: node.y - 3.7, width: 7.4, height: 7.4, rx: 1.9 }));
+        g.appendChild(svgEl('text', { class: 'route-wc-text', x: node.x, y: node.y + 1.25 }, [t('wc.marker')]));
+        layer.appendChild(g);
+        return;
+      }
+      if (st.key === 'end') { layer.appendChild(svgEl('circle', { class: cls + ' route-end', cx: node.x, cy: node.y, r: 2.6, style: '--i:' + n })); return; }
       if (st.isLast) return; // the last step lands on the platform; the end marker is enough
       const g = svgEl('g', { class: cls, style: '--i:' + n });
       g.appendChild(svgEl('circle', { class: 'route-step-bg', cx: node.x, cy: node.y, r: 3 }));
-      g.appendChild(svgEl('text', { class: 'route-step-text', x: node.x, y: node.y + 1.4 }, [String(n + 1)]));
+      g.appendChild(svgEl('text', { class: 'route-step-text', x: node.x, y: node.y + 1.4 }, [String(st.num)]));
       layer.appendChild(g);
     });
   }
@@ -676,6 +1118,7 @@
     renderList();
     highlightPlatforms();
     drawRoute(steps, animate);
+    S.wcMarkers.forEach((m) => m.g.classList.toggle('is-active', !!(S.route && S.route.wc === m.id)));
     I18N.apply();
   }
 
@@ -683,13 +1126,15 @@
     const ol = $('#steps');
     ol.innerHTML = '';
     ol.classList.remove('is-entering');
+    if (S.via === 'wc' && S.wcMissing) ol.appendChild(el('li', { class: 'is-note' }, [el('span', { class: 'n', text: '!' }), el('div', { text: S.route ? t('wc.none') : t('wc.noneOnly') })]));
     if (!S.route) {
-      ol.appendChild(el('li', { class: 'is-start' }, [el('span', { class: 'n', text: '!' }), el('div', { text: S.from && S.to ? t('transfer.noRoute') : t('transfer.none') })]));
+      if (!(S.via === 'wc' && S.wcMissing)) ol.appendChild(el('li', { class: 'is-start' }, [el('span', { class: 'n', text: '!' }), el('div', { text: S.from && S.to ? t('transfer.noRoute') : t('transfer.none') })]));
       return;
     }
     steps.forEach((st, i) => {
-      ol.appendChild(el('li', { class: st.key === 'start' ? 'is-start' : (st.key === 'end' ? 'is-end' : ''), style: '--i:' + i }, [
-        el('span', { class: 'n', text: String(i + 1) }),
+      const cls = [st.key === 'start' ? 'is-start' : (st.key === 'end' ? 'is-end' : ''), st.wc ? 'is-wc' : ''].filter(Boolean).join(' ');
+      ol.appendChild(el('li', { class: cls, style: '--i:' + i }, [
+        el('span', { class: 'n', text: st.num == null ? t('wc.marker') : String(st.num) }),
         el('div', null, [st.text, st.sub ? el('small', { text: st.sub }) : null])
       ]));
     });
@@ -702,17 +1147,21 @@
     box.innerHTML = '';
     if (!S.route) { box.appendChild(el('strong', { text: '—' })); return; }
     const walkMin = Math.max(1, Math.ceil(S.route.seconds / 60));
+    const wc = S.route.wc != null;
+    if (S.route.toWc) { box.appendChild(el('strong', { text: t('wc.walkOnly', { min: walkMin }) })); return; }
     const remDep = remainingMin(S.to), remArr = remainingMin(S.from);
-    if (remDep == null) { box.appendChild(el('strong', { text: t('transfer.walkOnly', { min: walkMin }) })); return; }
+    if (remDep == null) { box.appendChild(el('strong', { text: t('transfer.walkOnly', { min: walkMin + (wc ? TOILET_STOP_MIN : 0) }) })); return; }
     if (remDep < -0.5) { box.classList.add('is-late'); box.appendChild(el('strong', { text: t('transfer.departed') })); return; }
     const have = remDep - (remArr == null ? 0 : Math.max(0, remArr));
-    const margin = have - (S.route.same ? 0 : walkMin);
+    // The verdict counts the walk plus the toilet stop.
+    const margin = have - (S.route.same ? 0 : walkMin) - (wc ? TOILET_STOP_MIN : 0);
     const cls = margin >= 2 ? 'is-ok' : (margin >= 0 ? 'is-tight' : 'is-late');
     const label = S.route.same ? t('transfer.same') : t(cls === 'is-ok' ? 'transfer.ok' : (cls === 'is-tight' ? 'transfer.tight' : 'transfer.late'));
     box.classList.add(cls);
     box.appendChild(el('strong', { text: label }));
     const parts = [];
-    if (!S.route.same) parts.push(t('transfer.walk', { min: walkMin }));
+    if (wc) parts.push(t('wc.walk', { min: walkMin, stop: TOILET_STOP_MIN }));
+    else if (!S.route.same) parts.push(t('transfer.walk', { min: walkMin }));
     parts.push(t('transfer.have', { min: Math.max(0, Math.round(have)) }));
     box.appendChild(el('span', { text: parts.join(' · ') }));
   }
@@ -757,6 +1206,32 @@
       deps.forEach((r) => box.appendChild(depRow(r, () => select('to', r))));
       wrap.appendChild(box);
     });
+    renderToiletList(wrap);
+  }
+  /* List mode: every toilet, its flags and the walking time from the arrival platform. */
+  function renderToiletList(wrap) {
+    const box = el('section', { class: 'list-platform list-wc' }, [
+      el('h3', null, [el('span', { class: 'num wc-chip', text: t('wc.marker') }), el('span', { text: t('wc.list') })])
+    ]);
+    const a = platformNodeId(S.from);
+    const tree = a && S.nodes[a] ? shortest(a) : null;
+    const rows = S.toiletIds.map((id) => ({ n: S.nodes[id], secs: tree ? tree.dist[id] : null }))
+      .sort((x, y) => (x.secs == null ? 1e9 : x.secs) - (y.secs == null ? 1e9 : y.secs));
+    if (!rows.length) box.appendChild(el('p', { class: 'empty', text: t('wc.listEmpty') }));
+    else if (S.from) box.appendChild(el('p', { class: 'empty', text: t('wc.listFrom', { pf: platformLabel(S.from.platform, S.from.section) }) }));
+    rows.forEach(({ n, secs }) => {
+      const flags = [n.paid ? t('wc.paidShort') : t('wc.free')];
+      if (n.accessible) flags.push(t('wc.accessible'));
+      if (n.outside_gates) flags.push(t('wc.outsideShort'));
+      box.appendChild(el('div', { class: 'wc-row' + (S.route && S.route.wc === n.id ? ' is-yours' : '') }, [
+        el('span', { class: 'info' }, [
+          el('span', { class: 'name', text: capitalize(nodeLabel(n)) }),
+          el('span', { class: 'flags' }, flags.map((f) => el('span', { class: 'flag', text: f })))
+        ]),
+        el('span', { class: 'when', text: secs == null ? '—' : t('wc.listWalk', { min: Math.max(1, Math.ceil(secs / 60)) }) })
+      ]));
+    });
+    wrap.appendChild(box);
   }
 
   function highlightPlatforms() {
@@ -826,7 +1301,7 @@
   }
   function setViewBox(target, instant) {
     const svg = S.svg;
-    const apply = (vb) => svg.setAttribute('viewBox', vb.x.toFixed(2) + ' ' + vb.y.toFixed(2) + ' ' + vb.width.toFixed(2) + ' ' + vb.height.toFixed(2));
+    const apply = (vb) => { svg.setAttribute('viewBox', vb.x.toFixed(2) + ' ' + vb.y.toFixed(2) + ' ' + vb.width.toFixed(2) + ' ' + vb.height.toFixed(2)); scaleToiletMarkers(vb); };
     if (S.cancelCamera) { S.cancelCamera(); S.cancelCamera = null; }
     if (instant) { apply(target); return; }
     const a = currentViewBox();
@@ -853,7 +1328,7 @@
     const track = S.tracks[String(rec.platform)];
     if (!track) return null;
     const cars = Math.max(2, Math.round((Number(rec.length_m) || DEFAULT_TRAIN_LENGTH) / CAR_LENGTH));
-    const g = svgEl('g', { class: 'train train--' + trainCategory(rec.train), 'data-record': rec.id, 'aria-hidden': 'true' });
+    const g = svgEl('g', { class: 'train train--' + trainCategory(rec.train) + ' ' + liveryClasses(rec), 'data-record': rec.id, 'aria-hidden': 'true' });
     const carEls = [];
     const carLen = CAR_LENGTH - CAR_GAP;
     for (let i = 0; i < cars; i++) {
@@ -861,6 +1336,8 @@
       car.appendChild(svgEl('rect', { class: 'train-shadow', x: -CAR_WIDTH / 2 + 0.7, y: -carLen / 2 + 0.9, width: CAR_WIDTH, height: carLen, rx: 1.6 }));
       car.appendChild(svgEl('rect', { class: 'train-car', x: -CAR_WIDTH / 2, y: -carLen / 2, width: CAR_WIDTH, height: carLen, rx: 1.6 }));
       car.appendChild(svgEl('rect', { class: 'train-glass', x: -CAR_WIDTH / 2 + 1.5, y: -carLen / 2 + 3, width: CAR_WIDTH - 3, height: carLen - 6, rx: 0.8 }));
+      // One slim line along both sides; only some liveries show it (ICE red, Eurostar silver).
+      car.appendChild(svgEl('path', { class: 'train-stripe', d: 'M ' + (-CAR_WIDTH / 2 + 0.65) + ' ' + (-carLen / 2 + 1.5) + ' V ' + (carLen / 2 - 1.5) + ' M ' + (CAR_WIDTH / 2 - 0.65) + ' ' + (-carLen / 2 + 1.5) + ' V ' + (carLen / 2 - 1.5) }));
       if (i === 0) car.appendChild(svgEl('path', { class: 'train-nose', d: noseD(carLen, 1) }));
       if (i === cars - 1) car.appendChild(svgEl('path', { class: 'train-nose', d: noseD(carLen, -1) }));
       g.appendChild(car); carEls.push(car);
