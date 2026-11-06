@@ -4,13 +4,16 @@ Future features for Perronjoy, one line per idea. This is the only place for
 them: other files link here. Nothing here is planned or promised yet.
 Known problems go in [ISSUES.md](ISSUES.md).
 
+When an idea is built, strike it through and keep it, with where it was done:
+`- ~~Route to the nearest toilet (WC).~~ (done in <PR or commit>)`.
+
 ## Live data
 
 - Real NS API with live trains and platforms; it needs a small proxy for the key. The target data shape is in [SPEC section 8](docs/SPEC.md#8-sample-arrivals-and-departures), and the URL already takes plain platform numbers, so the stations need no change.
 
 ## Search
 
-- Search and select a platform by number; the matching platform comes up.
+- ~~Search and select a platform by number; the matching platform comes up.~~ (done in 75c9f87: one search-and-select field for the arrival and for the next train)
 
 ## Accessibility (main feature)
 
@@ -18,7 +21,7 @@ Known problems go in [ISSUES.md](ISSUES.md).
 
 ## Facilities
 
-- Route to the nearest toilet (WC).
+- ~~Route to the nearest toilet (WC).~~ (done in 2f2882e, c34d619 and 70e888e: toilets in every station, WC markers, the "WC onderweg" route)
 
 ## Map and 3D
 
@@ -26,11 +29,11 @@ Known problems go in [ISSUES.md](ISSUES.md).
 
 ## People
 
-- Random people walking on the platforms: super minimal, simple neutral human shapes, no gender, never noisy.
+- ~~Random people walking on the platforms: super minimal, simple neutral human shapes, no gender, never noisy.~~ (done in 4fee734)
 
 ## Look
 
-- A better colour palette, with trains closer to the real NS colours, without making the design noisy.
+- ~~A better colour palette, with trains closer to the real NS colours, without making the design noisy.~~ (done in 8b724cc: NS-like liveries for the trains)
 
 ## Feedback
 

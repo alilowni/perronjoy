@@ -16,7 +16,7 @@ Future features go in [IDEAS.md](IDEAS.md), not here.
 - [shell] There is no way to mark a platform or a passage as closed (Amsterdam: platform 13/14 and the Oosttunnel in 2026).
 - [shell] On a 390 px phone the end label box is 250 px wide, so a longer "Richting …" text ends in "…".
 - [shell] Platform badges sit at 18 % and 82 % of the platform height, so a route marker on a platform node near those points covers the badge.
-- [shell] `sprinklePeople` uses only numbered platform rects, so an extra platform surface (Amsterdam platform 2 east of the buffer stop) has no people.
+- ~~[shell] `sprinklePeople` uses only numbered platform rects, so an extra platform surface (Amsterdam platform 2 east of the buffer stop) has no people.~~ (fixed in 4fee734)
 - [shell] The whole-station view of a long, narrow station leaves wide empty margins on a desktop map.
 - ~~[docs] SPEC 5.2 says every track path runs the full height of the scene, but a dead-end track cannot (Amsterdam track 1, Utrecht tracks 1–4); the shell already handles shorter paths.~~ (fixed in 6dbf0ea)
 - ~~[docs] SPEC 8 does not say that the tight sample transfer must use the arrival's platform number or leave after the default, because the default "your train" is the soonest departure on another number.~~ (fixed in a3d1641)
@@ -58,3 +58,8 @@ Future features go in [IDEAS.md](IDEAS.md), not here.
 - [docs] SPEC 8's rule for the tight sample transfer (the arrival's own number in the other section, or later with a longer walk) cannot be met for the default arrival at a station without sections where every island-to-island walk takes the same time; Schiphol Airport uses a second, later arrival.
 - [station:schiphol-airport] The three stairs from the platforms to the new bus station (completed June 2026) come into use with the bus station in autumn 2027; then check the drawing, the check-in gates and whether they belong in the walking graph.
 - [station:schiphol-airport] The sample trains follow the live departures and arrivals of 6 November 2026; check them again after the timetable change of 13 December 2026.
+- [tools] Nothing checks a toilet's `outside_gates` against the gate lines: OpenStreetMap maps the check-in gates (`barrier=turnstile`) as lines across the halls at Utrecht and at the tunnel ends at Amsterdam, but only one turnstile at Rotterdam and none at Schiphol, so the gate side of most toilets is VERIFY.
+- [station:rotterdam-centraal] OpenStreetMap was reachable on 6 November 2026: track 4 runs at a bearing of 73.8°, so `north_deg` is about 106 (the scene uses 108), and the platform ends, passage and surroundings can now be redrawn from OSM.
+- [shell] On a phone the map lies above the transfer card, so while the search list is open the quiet outline of the active platform is out of view.
+- [shell] In list mode the "Toiletten" section comes after every platform, so at a large station (Utrecht, 16 platforms) it is far down the page.
+- [shell] A Eurostar gets the blue London livery only when its destination or origin names London (or Londen); `category` has no value for it, so a London train recorded with another end station is drawn in the red of the ex-Thalys services.

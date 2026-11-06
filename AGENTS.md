@@ -45,6 +45,8 @@ npm run check                 # contract check of every station folder
 npm run check -- <id>         # one station
 npm run smoke -- <id>         # browser test (needs Playwright)
 npm run shots -- <id> [--lang en] [--theme dark] [--from 5a --to 12b]
+npm run shots -- <id> --via wc         # the route via a toilet
+npm run shots -- <id> --open to [--search rotterdam]   # the search list, open
 npm test                      # check + smoke for everything
 ```
 
@@ -65,7 +67,8 @@ the Claude cloud environment already has it.
   `- ~~[shell] problem~~ (fixed in <commit or PR>)`.
 - **Future features live only in [IDEAS.md](IDEAS.md)**, one line per idea
   under its heading. Do not write plans for later in other files; link to
-  IDEAS.md instead.
+  IDEAS.md instead. When an idea is built, strike it through and keep it,
+  with where it was done: `- ~~idea~~ (done in <PR or commit>)`.
 - **Every station includes its public toilets** as `toilet` nodes in the
   walking graph, with `paid`, `accessible` and `outside_gates` and a source
   in `NOTES.md` under `## Toilets` ([SPEC 7, Toilets](docs/SPEC.md#toilets)).
