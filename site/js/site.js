@@ -588,10 +588,12 @@
     steps.push({ key: 'start', text: t('step.getOff', { pf: platformLabel(from.platform, from.section) }), node: route.nodes[0] });
     if (route.same) { steps.push({ key: 'end', text: t('transfer.same'), node: route.nodes[0] }); return steps; }
     let carry = 0;
+    let prev = S.nodes[route.nodes[0]]; // the last node that is not a waypoint: a waypoint only bends the line
     for (let i = 0; i < route.edges.length; i++) {
       const u = S.nodes[route.nodes[i]], v = S.nodes[route.nodes[i + 1]], e = route.edges[i];
       carry += Number(e.seconds) || 0;
       if (v.kind === 'waypoint') continue;
+      const from = prev; prev = v;
       const isLast = i === route.edges.length - 1;
       const lu = S.levelPos[u.level] || 0, lv = S.levelPos[v.level] || 0;
       const label = nodeLabel(v);
@@ -599,7 +601,7 @@
       let text;
       if (kind === 'walk' || lu === lv) {
         if (v.kind === 'hall' || v.kind === 'passage') text = t('step.walkThrough', { x: label });
-        else if (u.kind === 'platform' && v.kind !== 'platform') text = t('step.walkAlong', { x: label });
+        else if (from.kind === 'platform' && v.kind !== 'platform' && (S.levelPos[from.level] || 0) === lv) text = t('step.walkAlong', { x: label });
         else text = t('step.walkTo', { x: label });
       } else {
         const up = lv > lu;
