@@ -214,8 +214,13 @@ function checkStation(id) {
   // Surroundings: enough context to look real (SPEC 5.5).
   const groundMatch = svg.match(/<g[^>]*id="layer-ground"[^>]*>([\s\S]*?)<\/g>/);
   const ground = groundMatch ? groundMatch[1] : '';
+  // Count whole class names: `road-line` is not a `road`, `block--tall` comes with `block`.
   const counts = {};
-  SURROUNDING_CLASSES.forEach((c) => { counts[c] = (ground.match(new RegExp(`class="[^"]*\\b${c}\\b[^"]*"`, 'g')) || []).length; });
+  SURROUNDING_CLASSES.forEach((c) => { counts[c] = 0; });
+  for (const m of ground.matchAll(/\sclass="([^"]+)"/g)) {
+    const list = m[1].split(/\s+/);
+    SURROUNDING_CLASSES.forEach((c) => { if (list.includes(c)) counts[c] += 1; });
+  }
   const total = Object.values(counts).reduce((a, b) => a + b, 0);
   const kinds = Object.values(counts).filter((n) => n > 0).length;
   if (total < 15) warn(`only ${total} surrounding shapes in layer-ground; aim for 15–80 (SPEC 5.5)`);
