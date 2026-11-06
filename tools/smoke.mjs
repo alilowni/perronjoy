@@ -6,7 +6,8 @@
    train, smooth camera frames, language switch (also scene labels), theme switch,
    list mode, and picking another departure; the WC markers, the "WC onderweg"
    switch with its URL, steps and list section; the search-and-select fields by
-   keyboard and mouse. Placeholder stations are skipped.
+   keyboard and mouse; walking people that stay on their platform and stand
+   still without motion. Placeholder stations are skipped.
    Exit code 1 when a check fails. */
 
 import { readFileSync, existsSync } from 'node:fs';
@@ -30,7 +31,7 @@ for (const id of ids) {
   const data = JSON.parse(readFileSync(jsonPath, 'utf8'));
   console.log(`\n== ${id} ==`);
   if (data.status === 'placeholder') { console.log('  skip   placeholder'); continue; }
-  const results = [...await smoke(id), ...await smokeToilets(id, data), ...await smokeSearch(id)];
+  const results = [...await smoke(id), ...await smokeToilets(id, data), ...await smokeSearch(id), ...await smokePeople(id)];
   results.forEach(([ok, msg]) => { console.log((ok ? '  ok     ' : '  FAIL   ') + msg); if (!ok) failed = true; });
 }
 await browser.close();
@@ -296,6 +297,72 @@ async function smokeSearch(id) {
     await page.keyboard.press('Escape');
   }
   check(errors.length === 0, errors.length ? 'browser errors: ' + errors.join(' | ') : 'no browser errors (search)');
+  await context.close();
+  return out;
+}
+
+/* Walking people (SPEC 10): a few walk, slowly, inside their platform's box; nothing moves without motion. */
+async function smokePeople(id) {
+  const out = [];
+  const check = (ok, msg) => out.push([!!ok, msg]);
+  const context = await browser.newContext({ viewport: { width: 390, height: 844 } });
+  const page = await context.newPage();
+  const errors = [];
+  page.on('pageerror', (e) => errors.push(e.message));
+  const open = async (q) => { await page.goto(server.base + 'station.html?station=' + encodeURIComponent(id) + '&lang=nl&theme=light' + q, { waitUntil: 'networkidle' }); await page.waitForFunction(() => document.documentElement.dataset.pjState === 'ready', null, { timeout: 10000 }); };
+  const sample = () => page.evaluate(() => Array.from(document.querySelectorAll('#layer-people .person.is-walker')).map((g) => {
+    const m = (g.getAttribute('transform') || '').match(/translate\(([-\d.]+)[ ,]+([-\d.]+)\)/);
+    const [x1, y1, x2, y2] = g.dataset.box.split(' ').map(Number);
+    return { x: m ? +m[1] : NaN, y: m ? +m[2] : NaN, x1, y1, x2, y2, box: g.dataset.box };
+  }));
+  await open('');
+  const first = await sample();
+  const perBox = {}; first.forEach((w) => { perBox[w.box] = (perBox[w.box] || 0) + 1; });
+  const people = await page.locator('#layer-people .person').count();
+  check(first.length >= 1 && first.length <= 20 && Object.values(perBox).every((n) => n <= 3), `${first.length} of ${people} people walk (at most 3 per platform, 20 in all)`);
+  // Sample for a few seconds: they move, and never leave their platform's box.
+  let moved = 0, outside = 0, maxStep = 0, prev = first;
+  for (let i = 0; i < 12; i++) {
+    await page.waitForTimeout(300);
+    const now = await sample();
+    now.forEach((w, k) => {
+      if (w.x < w.x1 - 0.05 || w.x > w.x2 + 0.05 || w.y < w.y1 - 0.05 || w.y > w.y2 + 0.05 || Number.isNaN(w.x)) outside++;
+      maxStep = Math.max(maxStep, Math.hypot(w.x - prev[k].x, w.y - prev[k].y));
+    });
+    prev = now;
+  }
+  prev.forEach((w, k) => { if (Math.hypot(w.x - first[k].x, w.y - first[k].y) > 0.3) moved++; });
+  check(moved >= 1, `${moved} walker(s) moved in 3.6 s`);
+  check(outside === 0, `${outside} sampled position(s) outside a platform's box`);
+  // 0.6–1.0 units per second: at most 0.3 units in 300 ms (with a little slack for frame timing).
+  check(maxStep <= 0.34, `slow: the largest move in 300 ms is ${maxStep.toFixed(2)} units`);
+  // Frames while they walk (headless gives a rough number only).
+  const frames = await page.evaluate(() => new Promise((resolve) => {
+    const times = []; const t0 = performance.now();
+    function tick(now) { times.push(now); if (now - t0 < 1500) requestAnimationFrame(tick); else {
+      let maxGap = 0; for (let i = 1; i < times.length; i++) maxGap = Math.max(maxGap, times[i] - times[i - 1]);
+      resolve({ fps: Math.round(times.length / ((times[times.length - 1] - times[0]) / 1000)), maxGap: Math.round(maxGap) });
+    } }
+    requestAnimationFrame(tick);
+  }));
+  check(frames.maxGap < 120, `frames while people walk ~${frames.fps} fps, longest frame ${frames.maxGap} ms`);
+  // Unnumbered platform surfaces have people too.
+  const bare = await page.evaluate(() => Array.from(document.querySelectorAll('#layer-platforms rect.platform')).filter((r) => !/^platform-\d+[a-z]?$/.test(r.id)).map((r) => {
+    const b = r.getBBox();
+    if (b.width * b.height < 650 || b.width < 6) return null;
+    return Array.from(document.querySelectorAll('#layer-people .person')).filter((g) => { const m = g.getAttribute('transform').match(/translate\(([-\d.]+)[ ,]+([-\d.]+)\)/); return m && +m[1] >= b.x && +m[1] <= b.x + b.width && +m[2] >= b.y && +m[2] <= b.y + b.height; }).length;
+  }).filter((n) => n != null));
+  if (bare.length) check(bare.every((n) => n > 0), `platform surfaces without a number have people (${bare.join(', ')})`);
+  // List mode pauses them.
+  await page.click('#mode button[data-mode="list"]');
+  const l1 = JSON.stringify(await sample()); await page.waitForTimeout(800); const l2 = JSON.stringify(await sample());
+  check(l1 === l2, 'walkers pause in list mode');
+  await page.click('#mode button[data-mode="map"]');
+  // Reduced motion: nobody moves.
+  await open('&motion=off');
+  const m1 = JSON.stringify(await sample()); await page.waitForTimeout(1500); const m2 = JSON.stringify(await sample());
+  check(m1 === m2, 'with motion=off nobody moves');
+  check(errors.length === 0, errors.length ? 'browser errors: ' + errors.join(' | ') : 'no browser errors (people)');
   await context.close();
   return out;
 }

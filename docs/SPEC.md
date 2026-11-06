@@ -89,7 +89,9 @@ You do **not** draw these. The shared script adds them from your files:
 - Soft drop shadows under every `block`, `building`, `tree` and `platform`.
 - Ballast, sleepers and rails for every track, from your centrelines.
 - Platform number badges on every platform.
-- Tiny people on the platforms.
+- Tiny neutral people on every platform surface, also on a platform rect
+  without a number. About one in four walk slowly along their platform (see
+  [section 10](#10-look-and-motion)).
 - Trains, standing at the right place and moving in or out.
 - The walking route, its step markers, and the start and end markers.
 - A small WC marker at every toilet node, and the route via a toilet when the
@@ -474,8 +476,20 @@ classes turn into a calm night palette.
 
 All motion is done by the shell. It uses one animation loop, moves only
 transforms, opacity and a dash offset, and runs at the display's frame rate.
-It respects "reduce motion". Your job is to keep the scene light: few
-elements, simple shapes, under 150 KB. A heavy scene makes every frame slow.
+It respects "reduce motion".
+
+People are simple neutral shapes, a head and a body in one colour token: no
+gender cues, no faces, no legs, no walking cycle. About one in four walk (at
+most three per platform, about twenty on the whole map), slowly (0.6–1.0
+units per second), along their platform and inside a margin from its edges,
+with short pauses and smooth starts and stops. Fixed seeds per station and
+platform make every load and every screenshot the same. They pause in list
+mode and while the page is hidden, and stand still under reduced motion
+(`motion=off` or the system setting). They walk inside the platform rects,
+so keep those rects simple.
+
+Your job is to keep the scene light: few elements, simple shapes, under
+150 KB. A heavy scene makes every frame slow.
 
 ## 11. Checks before you push
 

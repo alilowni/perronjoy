@@ -25,6 +25,8 @@
   const CAR_GAP = 0.8;
   const CAR_WIDTH = 6;
   const DEFAULT_TRAIN_LENGTH = 150;
+  const WALKERS_PER_PLATFORM = 3; // walking people: at most this many per platform surface
+  const WALKERS_MAX = 20;          // and about this many on the whole map
   const OFFSCREEN = 40;       // how far beyond the track end a train starts or ends
   const LUT_STEP = 2;         // track lookup table resolution in scene units
   const ARRIVE_MS = 5200;
@@ -176,6 +178,7 @@
     adj: null,         // walking graph adjacency, built once
     badgeBoxes: [],    // platform badge boxes, so WC markers can stay clear of them
     wcMarkers: [],     // {id, g, x, y}
+    walkers: [], stopWalkers: null,
     trains: {},        // record id → train
     loadTime: Date.now(),
     frameMode: 'whole', mode: 'map', cancelCamera: null
@@ -437,24 +440,87 @@
     S.wcMarkers.forEach((m) => m.g.setAttribute('transform', 'translate(' + m.x.toFixed(2) + ' ' + m.y.toFixed(2) + ') scale(' + k.toFixed(3) + ')'));
   }
 
+  /* Tiny neutral people on every platform surface: numbered platform rects and platform rects without a
+     number (a section rect lies on its platform, which already has people). About one in four walk. */
   function sprinklePeople() {
     const svg = S.svg;
     let layer = svg.querySelector('#layer-people');
     if (!layer) { layer = svgEl('g', { id: 'layer-people', 'aria-hidden': 'true' }); (svg.querySelector('#layer-platforms') || svg.querySelector('#layer-badges')).after(layer); }
-    (S.data.platforms || []).forEach((p) => {
-      const b = S.platformBoxes[p.id]; if (!b) return;
-      const rnd = mulberry32(hashSeed(S.data.id + ':' + p.id));
+    const candidates = [];
+    $$('#layer-platforms rect.platform', svg).forEach((r, idx) => {
+      if (/^platform-\d+[a-z]$/.test(r.id)) return;
+      const b = r.getBBox();
+      if (b.width < 6 || b.height < 14) return;
+      const num = (r.id.match(/^platform-(\d+)$/) || [])[1];
+      const rnd = mulberry32(hashSeed(S.data.id + ':' + (num || 'surface-' + idx)));
+      const pickWalker = mulberry32(hashSeed(S.data.id + ':walkers:' + (num || 'surface-' + idx))); // its own stream: the standing people stay where they were
       const count = Math.min(14, Math.floor((b.width * b.height) / 650));
+      // The lane people stay in: the same margins as the standing people.
+      const box = { x1: b.x + 2.5, x2: b.x + Math.max(2.5, b.width - 2.5), y1: b.y + 6, y2: b.y + Math.max(6, b.height - 6) };
+      let walkers = 0;
       for (let i = 0; i < count; i++) {
-        const x = b.x + 2.5 + rnd() * Math.max(0, b.width - 5);
-        const y = b.y + 6 + rnd() * Math.max(0, b.height - 12);
-        const g = svgEl('g', { class: 'person' });
-        g.appendChild(svgEl('circle', { cx: x.toFixed(1), cy: y.toFixed(1), r: 0.7 }));
-        g.appendChild(svgEl('rect', { x: (x - 0.6).toFixed(1), y: (y + 0.6).toFixed(1), width: 1.2, height: 1.7, rx: 0.4 }));
+        const x = box.x1 + rnd() * (box.x2 - box.x1);
+        const y = box.y1 + rnd() * (box.y2 - box.y1);
+        const g = svgEl('g', { class: 'person', transform: 'translate(' + x.toFixed(1) + ' ' + y.toFixed(1) + ')' });
+        g.appendChild(svgEl('circle', { cx: 0, cy: 0, r: 0.7 }));
+        g.appendChild(svgEl('rect', { x: -0.6, y: 0.6, width: 1.2, height: 1.7, rx: 0.4 }));
         layer.appendChild(g);
+        // About one in four may walk, at most three per platform (picked below: about twenty on the map).
+        if (walkers < WALKERS_PER_PLATFORM && pickWalker() < 0.25) { walkers++; candidates.push({ g, box, x, y, seed: hashSeed(S.data.id + ':walk:' + (num || idx) + ':' + i) }); }
       }
     });
+    // Spread the walkers over the whole map, evenly and the same on every load.
+    const n = Math.min(WALKERS_MAX, candidates.length);
+    for (let k = 0; k < n; k++) {
+      const c = candidates[Math.floor(k * candidates.length / n)];
+      const rnd = mulberry32(c.seed);
+      c.g.classList.add('is-walker');
+      c.g.setAttribute('data-box', [c.box.x1, c.box.y1, c.box.x2, c.box.y2].map((v) => v.toFixed(2)).join(' '));
+      S.walkers.push({ g: c.g, box: c.box, x: c.x, y: c.y, rnd, speed: 0.6 + rnd() * 0.4, pause: 400 + rnd() * 3200, leg: null });
+    }
+    startWalkers();
+    document.addEventListener('visibilitychange', () => { if (document.hidden) stopWalkers(); else startWalkers(); });
   }
+  /* Walking people: slow (0.6–1.0 units/s), along their platform, with short pauses and smooth starts and
+     stops. One task on the shared ticker; transforms only, no layout reads. Still under reduced motion,
+     in list mode and while the page is hidden. */
+  function stepWalker(w, dt) {
+    if (!w.leg) {
+      w.pause -= dt;
+      if (w.pause > 0) return false;
+      const { x1, x2, y1, y2 } = w.box;
+      const len = 8 + w.rnd() * 30;
+      let dir = w.rnd() < 0.5 ? -1 : 1;
+      if (w.y + dir * len > y2 || w.y + dir * len < y1) dir = -dir;
+      const ty = Math.min(y2, Math.max(y1, w.y + dir * len));
+      const tx = Math.min(x2, Math.max(x1, w.x + (w.rnd() - 0.5) * 3));
+      const dist = Math.hypot(tx - w.x, ty - w.y);
+      // Speed up and slow down over 0.6 s, walk at w.speed in between: the top speed is w.speed.
+      const ramp = 600, ms = dist / w.speed * 1000 + ramp;
+      w.leg = { fx: w.x, fy: w.y, tx, ty, t: 0, ms, a: ramp / ms };
+    }
+    const leg = w.leg;
+    leg.t = Math.min(leg.ms, leg.t + dt);
+    const k = leg.t / leg.ms, a = leg.a;
+    const e = (k < a ? k * k / (2 * a) : (k > 1 - a ? 1 - a - (1 - k) * (1 - k) / (2 * a) : a / 2 + k - a)) / (1 - a); // smooth start and stop, no sudden turns
+    w.x = leg.fx + (leg.tx - leg.fx) * e;
+    w.y = leg.fy + (leg.ty - leg.fy) * e;
+    if (k >= 1) { w.leg = null; w.pause = 1200 + w.rnd() * 2800; }
+    return true;
+  }
+  function startWalkers() {
+    if (MOTION_OFF || S.stopWalkers || !S.walkers.length || S.mode !== 'map' || document.hidden) return;
+    let last = performance.now();
+    S.stopWalkers = ticker.add((now) => {
+      const dt = Math.min(100, now - last); last = now;
+      for (let i = 0; i < S.walkers.length; i++) {
+        const w = S.walkers[i];
+        if (stepWalker(w, dt)) w.g.setAttribute('transform', 'translate(' + w.x.toFixed(2) + ' ' + w.y.toFixed(2) + ')');
+      }
+      return true;
+    });
+  }
+  function stopWalkers() { if (S.stopWalkers) { S.stopWalkers(); S.stopWalkers = null; } }
 
   /* Scene text is Dutch in the file; data-en holds the English text. */
   function applySceneLabels() {
@@ -504,6 +570,7 @@
     $$('#mode button').forEach((btn) => btn.setAttribute('aria-pressed', btn.dataset.mode === mode ? 'true' : 'false'));
     $('#map').hidden = mode !== 'map';
     $('#list').hidden = mode !== 'list';
+    if (mode === 'map') startWalkers(); else stopWalkers();
     if (mode === 'map') frame(S.frameMode, true);
   }
 
