@@ -306,7 +306,9 @@ edges. The cost is seconds.
 - `seconds` is the time for a hurried traveller with a bag:
   - on a platform: about **1.2 m/s** (50 m ≈ 40 s)
   - in a busy hall or tunnel: about **1.0 m/s**
-  - stairs: 20 s down, 30 s up; escalator: 30 s; lift: 60–90 s with waiting
+  - stairs: 20 s down, 30 s up; escalator: 30 s; lift: 60–90 s with waiting.
+    An edge has one `seconds` for both directions, so give stairs one value
+    between 20 and 30 s.
 - Every platform node must reach every other platform node.
 - Model the real connections: the real stairs in their real places to the
   real passage. A long detour in reality is a long detour here too.
