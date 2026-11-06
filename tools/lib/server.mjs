@@ -1,7 +1,7 @@
 /* Tiny static file server for site/. Used by serve, screenshot and smoke. */
 import { createServer } from 'node:http';
 import { readFile } from 'node:fs/promises';
-import { join, extname, normalize, dirname } from 'node:path';
+import { join, extname, normalize, dirname, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 export const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
@@ -19,7 +19,7 @@ export async function startServer(port = 0, host = '127.0.0.1') {
     catch (e) { res.writeHead(400); res.end('bad request'); return; } // broken percent-encoding must not stop the server
     if (path.endsWith('/')) path += 'index.html';
     const file = normalize(join(SITE, path));
-    if (!file.startsWith(SITE)) { res.writeHead(403); res.end('forbidden'); return; }
+    if (!file.startsWith(SITE + sep)) { res.writeHead(403); res.end('forbidden'); return; } // not a sibling such as site-old/
     try {
       const body = await readFile(file);
       res.writeHead(200, { 'content-type': MIME[extname(file)] || 'application/octet-stream', 'cache-control': 'no-cache' });
