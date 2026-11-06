@@ -101,6 +101,29 @@
     if (type.includes('intercity') || type === 'ic') return 'ic';
     return 'int';
   }
+  /* The livery of a train, from train.type (SPEC 8): toned-down operator colours, no logos.
+     train.category overrides it with a livery name; the older "ic" and "spr" mean an NS train,
+     and "int" keeps the livery of the type (or the neutral body for an unknown type). */
+  const LIVERIES = ['ns', 'eurostar', 'ice', 'nightjet', 'sleeper', 'neutral'];
+  function trainLivery(train) {
+    if (!train) return 'neutral';
+    const cat = String(train.category || '').toLowerCase();
+    if (LIVERIES.includes(cat)) return cat;
+    if (cat === 'ic' || cat === 'spr') return 'ns';
+    const type = String(train.type || '').toLowerCase().trim();
+    if (/^(intercity|intercity direct|sprinter|eurocity direct|ic|icd|spr|ecd)$/.test(type)) return 'ns';
+    if (type === 'eurostar') return 'eurostar';
+    if (type === 'ice' || type === 'ice international') return 'ice';
+    if (type === 'nightjet') return 'nightjet';
+    if (type === 'european sleeper') return 'sleeper';
+    return 'neutral';
+  }
+  /* Eurostar has two liveries: the ex-Thalys services kept their red, the London services their blue. */
+  function liveryClasses(rec) {
+    const livery = trainLivery(rec.train);
+    const london = livery === 'eurostar' && /\b(london|londen)\b/i.test([rec.destination, rec.origin].filter(Boolean).join(' '));
+    return 'train--' + livery + (london ? ' train--eurostar-london' : '');
+  }
   function trainName(rec) {
     if (!rec.train) return t('train.unknown');
     return [rec.train.type, rec.train.number].filter(Boolean).join(' ') || t('train.unknown');
@@ -1305,7 +1328,7 @@
     const track = S.tracks[String(rec.platform)];
     if (!track) return null;
     const cars = Math.max(2, Math.round((Number(rec.length_m) || DEFAULT_TRAIN_LENGTH) / CAR_LENGTH));
-    const g = svgEl('g', { class: 'train train--' + trainCategory(rec.train), 'data-record': rec.id, 'aria-hidden': 'true' });
+    const g = svgEl('g', { class: 'train train--' + trainCategory(rec.train) + ' ' + liveryClasses(rec), 'data-record': rec.id, 'aria-hidden': 'true' });
     const carEls = [];
     const carLen = CAR_LENGTH - CAR_GAP;
     for (let i = 0; i < cars; i++) {
@@ -1313,6 +1336,8 @@
       car.appendChild(svgEl('rect', { class: 'train-shadow', x: -CAR_WIDTH / 2 + 0.7, y: -carLen / 2 + 0.9, width: CAR_WIDTH, height: carLen, rx: 1.6 }));
       car.appendChild(svgEl('rect', { class: 'train-car', x: -CAR_WIDTH / 2, y: -carLen / 2, width: CAR_WIDTH, height: carLen, rx: 1.6 }));
       car.appendChild(svgEl('rect', { class: 'train-glass', x: -CAR_WIDTH / 2 + 1.5, y: -carLen / 2 + 3, width: CAR_WIDTH - 3, height: carLen - 6, rx: 0.8 }));
+      // One slim line along both sides; only some liveries show it (ICE red, Eurostar silver).
+      car.appendChild(svgEl('path', { class: 'train-stripe', d: 'M ' + (-CAR_WIDTH / 2 + 0.65) + ' ' + (-carLen / 2 + 1.5) + ' V ' + (carLen / 2 - 1.5) + ' M ' + (CAR_WIDTH / 2 - 0.65) + ' ' + (-carLen / 2 + 1.5) + ' V ' + (carLen / 2 - 1.5) }));
       if (i === 0) car.appendChild(svgEl('path', { class: 'train-nose', d: noseD(carLen, 1) }));
       if (i === cars - 1) car.appendChild(svgEl('path', { class: 'train-nose', d: noseD(carLen, -1) }));
       g.appendChild(car); carEls.push(car);

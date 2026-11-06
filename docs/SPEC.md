@@ -92,7 +92,8 @@ You do **not** draw these. The shared script adds them from your files:
 - Tiny neutral people on every platform surface, also on a platform rect
   without a number. About one in four walk slowly along their platform (see
   [section 10](#10-look-and-motion)).
-- Trains, standing at the right place and moving in or out.
+- Trains, standing at the right place and moving in or out, each in a quiet
+  livery chosen from `train.type` (see [section 8](#8-sample-arrivals-and-departures)).
 - The walking route, its step markers, and the start and end markers.
 - A small WC marker at every toilet node, and the route via a toilet when the
   traveller turns on "WC onderweg" (see [Toilets](#toilets)).
@@ -227,7 +228,9 @@ trees, buildings, a covered entrance. Perronjoy stations do the same, quietly.
 
 - **Size limit: 150 KB.** Round coordinates to one decimal.
 - All text is real words. No lorem ipsum.
-- No railway logos, no brand colours, no copied map tiles.
+- No railway logos, no brand colours, no copied map tiles in the scene. This
+  rule is about your `scene.svg`: the trains the shell draws do use
+  toned-down operator colours (section 8), from tokens in `site/css/site.css`.
 
 ## 6. station.json
 
@@ -409,8 +412,27 @@ What the shell does with them:
 - `from_end` / `to_end`: `top` or `bottom`, where the train comes from or
   goes to. It must match the real direction.
 - `train.type` is a public product name: `Intercity`, `Sprinter`,
-  `Intercity direct`, `Eurostar`, `ICE`, `NightJet`, `European Sleeper`.
-  Optional `category`: `ic`, `spr` or `int` to force the nose colour.
+  `Intercity direct`, `Eurocity direct`, `Eurostar`, `ICE`, `NightJet`,
+  `European Sleeper`.
+- The shell paints each train in a quiet livery chosen from `train.type`, as
+  a class on the train group. The colours are toned-down tokens in
+  `site/css/site.css`, dimmer in the dark theme. No logos, no text, no
+  gradients.
+
+  | `train.type` | class | livery |
+  |---|---|---|
+  | Intercity, Sprinter, Intercity direct, Eurocity direct | `train--ns` | soft NS yellow, NS blue at the cab ends |
+  | Eurostar | `train--eurostar` | muted red with a silver line (the ex-Thalys services kept their red) |
+  | Eurostar to or from London | also `train--eurostar-london` | light body, dark blue cab ends (the London services kept their blue) |
+  | ICE | `train--ice` | white with a thin red line |
+  | NightJet | `train--nightjet` | dark blue |
+  | European Sleeper | `train--sleeper` | muted grey: it runs rented coaches in mixed liveries |
+  | any other type | `train--neutral` | the neutral body |
+
+- Optional `category` overrides the livery with a livery name: `ns`,
+  `eurostar`, `ice`, `nightjet`, `sleeper` or `neutral`. The older values
+  still work: `ic` and `spr` mean an NS train, and `int` keeps the livery of
+  the type (the neutral body with a slate nose for an unknown type).
 - `length_m`: 70–100 for a Sprinter, 130–200 for an Intercity, 200–400 for
   international trains. Trains must fit on the platform.
 - Destinations and origins are real station names in Dutch spelling, in both

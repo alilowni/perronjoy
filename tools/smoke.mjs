@@ -7,7 +7,8 @@
    list mode, and picking another departure; the WC markers, the "WC onderweg"
    switch with its URL, steps and list section; the search-and-select fields by
    keyboard and mouse; walking people that stay on their platform and stand
-   still without motion. Placeholder stations are skipped.
+   still without motion; the livery class of every sample train. Placeholder
+   stations are skipped.
    Exit code 1 when a check fails. */
 
 import { readFileSync, existsSync } from 'node:fs';
@@ -31,7 +32,7 @@ for (const id of ids) {
   const data = JSON.parse(readFileSync(jsonPath, 'utf8'));
   console.log(`\n== ${id} ==`);
   if (data.status === 'placeholder') { console.log('  skip   placeholder'); continue; }
-  const results = [...await smoke(id), ...await smokeToilets(id, data), ...await smokeSearch(id), ...await smokePeople(id)];
+  const results = [...await smoke(id), ...await smokeToilets(id, data), ...await smokeSearch(id), ...await smokePeople(id), ...await smokeLiveries(id, data)];
   results.forEach(([ok, msg]) => { console.log((ok ? '  ok     ' : '  FAIL   ') + msg); if (!ok) failed = true; });
 }
 await browser.close();
@@ -363,6 +364,56 @@ async function smokePeople(id) {
   const m1 = JSON.stringify(await sample()); await page.waitForTimeout(1500); const m2 = JSON.stringify(await sample());
   check(m1 === m2, 'with motion=off nobody moves');
   check(errors.length === 0, errors.length ? 'browser errors: ' + errors.join(' | ') : 'no browser errors (people)');
+  await context.close();
+  return out;
+}
+
+/* Liveries (SPEC 8): the class the contract expects from train.type, for every sample train. */
+function expectedLivery(rec) {
+  // A function, not a top-level const: the checks above run (top-level await) before this line is reached.
+  const LIVERY_BY_TYPE = { intercity: 'ns', 'intercity direct': 'ns', sprinter: 'ns', 'eurocity direct': 'ns', eurostar: 'eurostar', ice: 'ice', nightjet: 'nightjet', 'european sleeper': 'sleeper' };
+  const cat = String((rec.train && rec.train.category) || '').toLowerCase();
+  if (['ns', 'eurostar', 'ice', 'nightjet', 'sleeper', 'neutral'].includes(cat)) return cat;
+  if (cat === 'ic' || cat === 'spr') return 'ns';
+  return LIVERY_BY_TYPE[String((rec.train && rec.train.type) || '').toLowerCase().trim()] || 'neutral';
+}
+async function smokeLiveries(id, data) {
+  const out = [];
+  const check = (ok, msg) => out.push([!!ok, msg]);
+  const context = await browser.newContext({ viewport: { width: 1280, height: 800 } });
+  const page = await context.newPage();
+  const errors = [];
+  page.on('pageerror', (e) => errors.push(e.message));
+  await page.goto(server.base + 'station.html?station=' + encodeURIComponent(id) + '&lang=nl&theme=light&motion=off', { waitUntil: 'networkidle' });
+  await page.waitForFunction(() => document.documentElement.dataset.pjState === 'ready', null, { timeout: 10000 });
+  const classOf = (rid) => page.evaluate((r) => { const g = document.querySelector(`.train[data-record="${r}"]`); return g ? g.getAttribute('class') : null; }, rid);
+  const wrong = [], seen = {};
+  for (const r of data.departures || []) {
+    const cls = await classOf(r.id);
+    if (cls === null) continue; // already left
+    const want = expectedLivery(r);
+    seen[want] = (seen[want] || 0) + 1;
+    if (!cls.split(' ').includes('train--' + want)) wrong.push(`${r.id}: ${cls} (want train--${want})`);
+  }
+  // Each arrival in turn: pick it, then look at the train that comes in.
+  for (const r of data.arrivals || []) {
+    await page.evaluate((rid) => { const s = window.Perronjoy.state; window.Perronjoy.select('from', s.arrivals.find((a) => a.id === rid)); }, r.id);
+    const cls = await classOf(r.id);
+    if (cls === null) continue; // the standing train on that platform is this train
+    const want = expectedLivery(r);
+    seen[want] = (seen[want] || 0) + 1;
+    if (!cls.split(' ').includes('train--' + want)) wrong.push(`${r.id}: ${cls} (want train--${want})`);
+  }
+  check(!wrong.length, wrong.length ? 'livery classes: ' + wrong.join(' | ') : 'every sample train has its livery class (' + Object.entries(seen).map(([k, n]) => n + ' ' + k).join(', ') + ')');
+  // The livery colours come from site.css: an NS car is not the neutral body.
+  const fills = await page.evaluate(() => {
+    const car = (sel) => { const n = document.querySelector(sel + ' .train-car'); return n ? getComputedStyle(n).fill : null; };
+    const probe = document.createElementNS('http://www.w3.org/2000/svg', 'rect'); probe.setAttribute('class', 'train-car'); document.querySelector('#layer-trains').appendChild(probe);
+    const neutral = getComputedStyle(probe).fill; probe.remove();
+    return { ns: car('.train--ns'), neutral };
+  });
+  if (fills.ns) check(fills.ns !== fills.neutral, `NS livery is painted (${fills.ns}, neutral ${fills.neutral})`);
+  check(errors.length === 0, errors.length ? 'browser errors: ' + errors.join(' | ') : 'no browser errors (liveries)');
   await context.close();
   return out;
 }

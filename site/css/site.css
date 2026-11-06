@@ -77,13 +77,39 @@
   --wc-active-bg: #3a4552;
   --wc-active-text: #ffffff;
 
-  /* Trains: original Perronjoy accents, not a copy of any railway brand */
+  /* Trains: a neutral body, and toned-down operator liveries (SPEC 8). No logos, no text, no gradients. */
   --train-body: #fbfcfd;
   --train-edge: #a9b2bc;
   --train-glass: #d6e3ee;
-  --train-ic: #e07a5f;       /* coral: Intercity */
-  --train-spr: #4a9ba6;      /* teal: Sprinter */
-  --train-int: #3b4452;      /* slate: international */
+  --train-ic: #e07a5f;       /* neutral body, nose by category: coral Intercity */
+  --train-spr: #4a9ba6;      /* teal Sprinter */
+  --train-int: #3b4452;      /* slate international */
+  --train-ns-body: #f2d880;  /* NS yellow (#ffc917), softened */
+  --train-ns-edge: #c9a94b;
+  --train-ns-glass: #f7e8b2;
+  --train-ns-accent: #34528a; /* NS blue (#003082), softened: the cab ends */
+  --train-est-body: #9b4c59; /* Eurostar red (the ex-Thalys services), muted */
+  --train-est-edge: #7a3844;
+  --train-est-glass: #ad6370;
+  --train-est-line: #d5d9de; /* its silver-grey band */
+  --train-est-nose: #7a3844;
+  --train-estl-body: #e2e7ed; /* Eurostar to London: light body, dark blue cab ends */
+  --train-estl-edge: #9fabb8;
+  --train-estl-glass: #cbd5e0;
+  --train-estl-nose: #34496d;
+  --train-ice-body: #fbfcfd; /* ICE: white with a thin red line */
+  --train-ice-edge: #a9b2bc;
+  --train-ice-glass: #e1e7ed;
+  --train-ice-line: #d0716c;
+  --train-ice-nose: #e4e9ee;
+  --train-nj-body: #34425f;  /* NightJet: dark blue */
+  --train-nj-edge: #222c42;
+  --train-nj-glass: #4b5c80;
+  --train-nj-nose: #222c42;
+  --train-es-body: #687280;  /* European Sleeper: rented coaches in mixed liveries, drawn a muted grey */
+  --train-es-edge: #4f5864;
+  --train-es-glass: #808a96;
+  --train-es-nose: #4f5864;
 
   /* Motion */
   --ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);
@@ -172,6 +198,32 @@
   --train-body: #e6ebf0;
   --train-edge: #6f7a86;
   --train-glass: #9fb4c6;
+  --train-ns-body: #b99d48;
+  --train-ns-edge: #8d7633;
+  --train-ns-glass: #c9ae5c;
+  --train-ns-accent: #4d6ca6;
+  --train-est-body: #7b3d48;
+  --train-est-edge: #9a5662;
+  --train-est-glass: #8b4b56;
+  --train-est-line: #aab0b7;
+  --train-est-nose: #5f2d37;
+  --train-estl-body: #c3cbd5;
+  --train-estl-edge: #7f8b98;
+  --train-estl-glass: #a6b3c1;
+  --train-estl-nose: #3e557d;
+  --train-ice-body: #e6ebf0;
+  --train-ice-edge: #6f7a86;
+  --train-ice-glass: #bcc6d0;
+  --train-ice-line: #b9544f;
+  --train-ice-nose: #cdd4db;
+  --train-nj-body: #34446a;
+  --train-nj-edge: #52638c;
+  --train-nj-glass: #45577f;
+  --train-nj-nose: #26324f;
+  --train-es-body: #5e6874;
+  --train-es-edge: #7a8592;
+  --train-es-glass: #6d7783;
+  --train-es-nose: #47505a;
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme]) { color-scheme: dark; --bg: #0e1318; --surface: #161c23; --text: #e7ecf1; }
@@ -390,6 +442,29 @@ ol, ul { margin: 0; padding: 0; list-style: none; }
 .scene .train--spr .train-nose { fill: var(--train-spr); }
 .scene .train--int .train-nose { fill: var(--train-int); }
 .scene .train-shadow { fill: var(--scene-shadow); }
+.scene .train-stripe { display: none; fill: none; stroke-width: 0.38; stroke-linecap: round; }
+/* Liveries: classes on the train group, chosen from train.type (SPEC 8). */
+.scene .train--ns .train-car { fill: var(--train-ns-body); stroke: var(--train-ns-edge); }
+.scene .train--ns .train-glass { fill: var(--train-ns-glass); }
+.scene .train--ns .train-nose { fill: var(--train-ns-accent); }
+.scene .train--eurostar .train-car { fill: var(--train-est-body); stroke: var(--train-est-edge); }
+.scene .train--eurostar .train-glass { fill: var(--train-est-glass); }
+.scene .train--eurostar .train-stripe { display: inline; stroke: var(--train-est-line); }
+.scene .train--eurostar .train-nose { fill: var(--train-est-nose); }
+.scene .train--eurostar-london .train-car { fill: var(--train-estl-body); stroke: var(--train-estl-edge); }
+.scene .train--eurostar-london .train-glass { fill: var(--train-estl-glass); }
+.scene .train--eurostar-london .train-stripe { display: none; }
+.scene .train--eurostar-london .train-nose { fill: var(--train-estl-nose); }
+.scene .train--ice .train-car { fill: var(--train-ice-body); stroke: var(--train-ice-edge); }
+.scene .train--ice .train-glass { fill: var(--train-ice-glass); }
+.scene .train--ice .train-stripe { display: inline; stroke: var(--train-ice-line); }
+.scene .train--ice .train-nose { fill: var(--train-ice-nose); }
+.scene .train--nightjet .train-car { fill: var(--train-nj-body); stroke: var(--train-nj-edge); }
+.scene .train--nightjet .train-glass { fill: var(--train-nj-glass); }
+.scene .train--nightjet .train-nose { fill: var(--train-nj-nose); }
+.scene .train--sleeper .train-car { fill: var(--train-es-body); stroke: var(--train-es-edge); }
+.scene .train--sleeper .train-glass { fill: var(--train-es-glass); }
+.scene .train--sleeper .train-nose { fill: var(--train-es-nose); }
 
 /* =====================================================================
    8. Transfer card
